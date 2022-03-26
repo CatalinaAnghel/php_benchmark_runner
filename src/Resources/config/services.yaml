@@ -1,0 +1,16 @@
+services:
+  MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner:
+    public: true
+    arguments:
+      $optionsManager: '@php_benchmark_runner.options_mapper'
+
+
+  MepProject\PhpBenchmarkRunner\Helper\OptionsMapper: ~
+
+  php_benchmark_runner.runner:
+    alias: MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner
+    public: true
+
+
+  php_benchmark_runner.options_mapper:
+    alias: MepProject\PhpBenchmarkRunner\Helper\OptionsMapper

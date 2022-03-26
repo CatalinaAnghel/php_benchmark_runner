@@ -1,0 +1,19 @@
+{
+    "name": "mep_project/php_benchmark_runner",
+    "description": "A PHP benchmark runner inspired by PHPBench",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MepProject\\PhpBenchmarkRunner\\": "src/",
+            "MepProject\\PhpBenchmarkRunner\\Service\\": "src/Service/",
+            "MepProject\\PhpBenchmarkRunner\\Helper\\": "src/Helper/"
+        }
+    },
+    "require": {
+        "php": "^7.4.0",
+        "symfony/config": "*",
+        "symfony/dependency-injection": "*",
+        "symfony/http-kernel": "*"
+    }
+}
