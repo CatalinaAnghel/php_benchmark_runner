@@ -2,15 +2,15 @@ services:
   MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner:
     public: true
     arguments:
-      $optionsManager: '@php_benchmark_runner.options_mapper'
+      $annotationManager: '@php_benchmark_runner.annotation_mapper'
 
 
-  MepProject\PhpBenchmarkRunner\Helper\OptionsMapper: ~
+  MepProject\PhpBenchmarkRunner\Service\AnnotationMapper: ~
 
   php_benchmark_runner.runner:
     alias: MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner
     public: true
 
 
-  php_benchmark_runner.options_mapper:
-    alias: MepProject\PhpBenchmarkRunner\Helper\OptionsMapper
+  php_benchmark_runner.annotation_mapper:
+    alias: MepProject\PhpBenchmarkRunner\Helper\AnnotationMapper

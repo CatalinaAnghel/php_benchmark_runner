@@ -1,6 +1,6 @@
 <?php
 
-namespace MepProject\PhpBenchmarkRunner\Helper;
+namespace MepProject\PhpBenchmarkRunner\Service;
 
 use MepProject\PhpBenchmarkRunner\DTO\BenckmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkConfiguration;
@@ -11,7 +11,7 @@ use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\PhpDocParser\Parser\TypeParser;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-class OptionsMapper {
+class AnnotationMapper {
     /**
      * @var ServiceLocator $serviceLocator
      */

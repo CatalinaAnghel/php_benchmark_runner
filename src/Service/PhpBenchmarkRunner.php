@@ -2,20 +2,17 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
-use MepProject\PhpBenchmarkRunner\Helper\OptionsMapper;
+use MepProject\PhpBenchmarkRunner\Service\AnnotationMapper;
 use MepProject\PhpBenchmarkRunner\Service\Abstractions\IPhpBenchmarkRunner;
 
-class PhpBenchmarkRunner implements IPhpBenchmarkRunner
-{
-    protected $optionsMapper;
+class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
+    protected $annotationMapper;
 
-    public function __construct(OptionsMapper $optionsManager)
-    {
-        $this->optionsMapper = $optionsManager;
+    public function __construct(AnnotationMapper $annotationMapper){
+        $this->annotationMapper = $annotationMapper;
     }
 
-    public function test()
-    {
-        $this->optionsMapper->buildBenchmarkRecipe();
+    public function buildBenchmark():void{
+        $this->annotationMapper->buildBenchmarkRecipe();
     }
 }
