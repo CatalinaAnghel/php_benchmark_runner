@@ -16,6 +16,6 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner
 
     public function test()
     {
-        $this->optionsMapper->print();
+        $this->optionsMapper->buildBenchmarkRecipe();
     }
 }

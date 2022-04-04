@@ -21,8 +21,7 @@ class PhpBenchmarkRunnerExtension extends Extension {
         $config = $this->processConfiguration($configuration, $configs);
 
         $definition = $container->findDefinition('php_benchmark_runner.options_mapper');
-        $definition->setArgument(0, $config['source_dir']);
-        $definition->setArgument(1, new Reference($config['locator']));
+        $definition->setArgument(0, new Reference($config['locator']));
         $container->registerForAutoconfiguration(OptionsMapper::class);
 //        $definition->setArgument(1, $config['unicorns_are_real']);
 //        $definition->setArgument(2, $config['min_sunshine']);

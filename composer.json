@@ -7,13 +7,23 @@
         "psr-4": {
             "MepProject\\PhpBenchmarkRunner\\": "src/",
             "MepProject\\PhpBenchmarkRunner\\Service\\": "src/Service/",
-            "MepProject\\PhpBenchmarkRunner\\Helper\\": "src/Helper/"
+            "MepProject\\PhpBenchmarkRunner\\Exception\\": "src/Exception/",
+            "MepProject\\PhpBenchmarkRunner\\DTO\\": "src/DTO/",
+            "MepProject\\PhpBenchmarkRunner\\DTO\\Abstractions\\": "src/DTO/Abstractions"
         }
     },
     "require": {
         "php": "^7.4.0",
         "symfony/config": "*",
         "symfony/dependency-injection": "*",
-        "symfony/http-kernel": "*"
-    }
+        "symfony/http-kernel": "*",
+        "phpdocumentor/reflection-docblock": "^5.3",
+        "phpstan/phpdoc-parser": "^1.2"
+    },
+    "authors": [
+        {
+            "name": "Catalina Anghel",
+            "role": "Developer"
+        }
+    ]
 }

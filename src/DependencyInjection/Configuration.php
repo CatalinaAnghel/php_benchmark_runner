@@ -10,9 +10,6 @@ class Configuration implements ConfigurationInterface {
         $threeBuilder = new TreeBuilder('php_benchmark_runner');
         $rootNode = $threeBuilder->getRootNode();
         $rootNode->children()
-            ->scalarNode('source_dir')
-            ->defaultValue('src/Services')
-            ->end()
             ->scalarNode('locator')
             ->defaultNull()
             ->end()
