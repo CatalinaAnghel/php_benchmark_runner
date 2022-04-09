@@ -1,9 +1,6 @@
 services:
   MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner:
     public: true
-    arguments:
-      $annotationManager: '@php_benchmark_runner.annotation_mapper'
-
 
   MepProject\PhpBenchmarkRunner\Service\AnnotationMapper: ~
 
@@ -13,4 +10,4 @@ services:
 
 
   php_benchmark_runner.annotation_mapper:
-    alias: MepProject\PhpBenchmarkRunner\Helper\AnnotationMapper
+    alias: MepProject\PhpBenchmarkRunner\Service\AnnotationMapper

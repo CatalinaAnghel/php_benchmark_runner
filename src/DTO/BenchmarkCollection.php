@@ -2,13 +2,15 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
+use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractBenchmarkConfiguration;
+
 /**
  * class BenchmarkCollection
  * @author Catalina Anghel
  */
-class BenckmarkCollection {
+class BenchmarkCollection {
     /**
-     * @var BenchmarkConfiguration[]|null $benchmarks
+     * @var Benchmark[]|null $benchmarks
      */
     protected $benchmarks;
 
@@ -20,28 +22,28 @@ class BenckmarkCollection {
     }
 
     /**
-     * @return BenchmarkConfiguration[]|null
+     * @return Benchmark[]|null
      */
     public function getBenchmarks(): ?array {
         return $this->benchmarks;
     }
 
     /**
-     * @param BenchmarkConfiguration[]|null $benchmarks
+     * @param Benchmark[]|null $benchmarks
      */
     public function setBenchmarks(?array $benchmarks): void {
         $this->benchmarks = $benchmarks;
     }
 
     /**
-     * @param BenchmarkConfiguration $benchmarkConfiguration
+     * @param Benchmark $benchmark
      * @param int|false $postition
      */
-    public function addBenchmark(BenchmarkConfiguration $benchmarkConfiguration, $postition = false):void {
+    public function addBenchmark(Benchmark $benchmark, $postition = false):void {
         if($postition !== false){
-            $this->benchmarks[$position] = $benchmarkConfiguration;
+            $this->benchmarks[$position] = $benchmark;
         }else{
-            $this->benchmarks[] = $benchmarkConfiguration;
+            $this->benchmarks[] = $benchmark;
         }
     }
 }

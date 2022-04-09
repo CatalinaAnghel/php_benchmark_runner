@@ -66,4 +66,13 @@ abstract class AbstractHook{
      * @return bool
      */
     public abstract function validate():bool;
+
+    /**
+     * Returns the type of the hook (class or method)
+     *
+     * @return string
+     */
+    public function getHookType(): string{
+        return get_class($this);
+    }
 }

@@ -2,17 +2,70 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
+use MepProject\PhpBenchmarkRunner\DTO\Benchmark;
+use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\Service\AnnotationMapper;
 use MepProject\PhpBenchmarkRunner\Service\Abstractions\IPhpBenchmarkRunner;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
+    /**
+     * @var \MepProject\PhpBenchmarkRunner\Service\AnnotationMapper
+     */
     protected $annotationMapper;
+    
+    /**
+     * @var ServiceLocator $serviceLocator
+     */
+    private $serviceLocator;
 
-    public function __construct(AnnotationMapper $annotationMapper){
+    public function __construct(AnnotationMapper $annotationMapper, ServiceLocator $serviceLocator){
         $this->annotationMapper = $annotationMapper;
+        $this->serviceLocator = $serviceLocator;
     }
 
     public function buildBenchmark():void{
-        $this->annotationMapper->buildBenchmarkRecipe();
+        $this->buildBenchmarkRecipe();
+    }
+
+    /**
+     * Builds the bencjmarking recipe based on the annotations provided within the registered services.
+     * @throws \ReflectionException
+     */
+    public function buildBenchmarkRecipe(){
+        $providedServices = $this->serviceLocator->getProvidedServices();
+        $benchmarkCollection = new BenchmarkCollection();
+
+        if(is_array($providedServices) && count($providedServices)){
+            // there are services registered for benchmarking
+            foreach($providedServices as $providedService){
+                try{
+                    $reflection = new \ReflectionClass($providedService);
+                    $classDocs = $reflection->getDocComment();
+                    if($classDocs){
+                        $benchmark = new Benchmark();
+                        $classBenchmarkConfiguration = $this->annotationMapper->parseClassAnnotations($classDocs, $reflection->getName());
+                        $classBenchmarkConfiguration->setReflector($reflection);
+                        $benchmark->setClassBenchmarkConfiguration($classBenchmarkConfiguration);
+                        foreach ($reflection->getMethods() as $method){
+                            $methodBenchmarkConfiguration = $this->annotationMapper->parseMethodAnnotations($method, $reflection->getName());
+
+                            if($methodBenchmarkConfiguration){
+                                $benchmark->addMethodBenchmarkConfiguration($methodBenchmarkConfiguration);
+                            }
+                        }
+                        if(count($benchmark->getMethodBenchmarkConfigurations())){
+                            $benchmarkCollection->addBenchmark($benchmark);
+                        }
+
+
+
+                    }
+                }catch (\ReflectionException $exception){
+                    throw $exception;
+                }
+            }
+        }dd($benchmarkCollection);
+        return $benchmarkCollection;
     }
 }

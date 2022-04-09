@@ -1,13 +1,11 @@
 <?php
 
-namespace MepProject\PhpBenchmarkRunner\DTO;
+namespace MepProject\PhpBenchmarkRunner\DTO\Abstractions;
 
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractHook;
+use Symfony\Component\Config\Definition\Exception\Exception;
+use Reflector;
 
-/**
- * class BenchmarkConfiguration
- */
-class BenchmarkConfiguration{
+abstract class AbstractBenchmarkConfiguration{
     /**
      * The number of revolutions that will be performed
      * @var int $numberOfRevolutions
@@ -25,6 +23,20 @@ class BenchmarkConfiguration{
      * @var AbstractHook[]|null $hooks
      */
     protected $hooks;
+
+    /**
+     * @var Reflector $reflector
+     */
+    protected $reflector;
+
+    /**
+     * Init
+     */
+    public function init(){
+        $this->numberOfRevolutions = 1;
+        $this->numberOfIterations = 1;
+        $this->hooks = array();
+    }
 
     /**
      * @return int
@@ -62,16 +74,36 @@ class BenchmarkConfiguration{
     }
 
     /**
-     * @param AbstractHook[]|null $hooks
-     */
-    public function setHooks(?array $hooks): void{
-        $this->hooks = $hooks;
-    }
-
-    /**
      * @param AbstractHook $hook
      */
     public function addHook(AbstractHook $hook):void{
-        $this->hooks[] = $hook;
+        if($this->validateHook($hook)){
+            $this->hooks[] = $hook;
+        }else{
+            throw new Exception('Invalid hook configuration');
+        }
     }
+
+    /**
+     * @return Reflector
+     */
+    public function getReflector(): Reflector{
+        return $this->reflector;
+    }
+
+    /**
+     * @param Reflector $reflector
+     */
+    public function setReflector(Reflector $reflector): void{
+        $this->reflector = $reflector;
+    }
+
+
+    /**
+     * Validates the hook configuration
+     *
+     * @param AbstractHook $hook
+     * @return bool
+     */
+    public abstract function validateHook(AbstractHook $hook):bool;
 }

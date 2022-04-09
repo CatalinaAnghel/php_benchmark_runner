@@ -2,20 +2,26 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
+use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\BenckmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\ClassBenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\ClassHook;
+use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\MethodHook;
+use MepProject\PhpBenchmarkRunner\Exception\ExceptionMessages;
+use MepProject\PhpBenchmarkRunner\Helper\Constants;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\ParserException;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\PhpDocParser\Parser\TypeParser;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
 class AnnotationMapper {
-    /**
-     * @var ServiceLocator $serviceLocator
-     */
-    private $serviceLocator;
+    CONST PARAMETERS_REPLACE_PATTERN = '~(\(|\)| |")~';
 
     /**
      * @var Lexer $lexer
@@ -32,79 +38,199 @@ class AnnotationMapper {
      */
     private $benchmarkCollection;
 
-    # service types
-    CONST HOOKS_MANAGER_TAG = 'hooks';
-    CONST METRICS_GENERATOR_TAG = 'metrics';
-
-    # options
-    CONST REVOLUTIONS_OPTION = 0;
-    CONST ITERATIONS_OPTION = 1;
-    CONST PARAMETER_PROVIDER_OPTION = 2;
-
-    # hooks
-    CONST BEFORE_METHOD_HOOK = 3;
-    CONST AFTER_METHOD_HOOK = 4;
-    CONST BENCHMARK_ORDER_HOOK = 5;
-    CONST BEFORE_CLASS_HOOK = 6;
-    CONST AFTER_CLASS_HOOK = 7;
-
     protected $patterns = [
-        '#@Revolutions([1-9]+[0-9]*)#' => self::REVOLUTIONS_OPTION,
-        '#@Iterations([1-9]+[0-9]*)#' => self::ITERATIONS_OPTION,
-        '#@ParameterProvider(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => self::PARAMETER_PROVIDER_OPTION,
-        '#@BeforeMethod(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => self::BEFORE_METHOD_HOOK,
-        '#@AfterMethod(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => self::AFTER_METHOD_HOOK,
-        '#@BeforeBenchmark(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => self::BEFORE_CLASS_HOOK,
-        '#@AfterBenchmark(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => self::AFTER_CLASS_HOOK,
-        '#@Order([1-9]+[0-9]*)#' => self::BENCHMARK_ORDER_HOOK
+        '#@Revolutions([1-9]+[0-9]*)#' => Constants::REVOLUTIONS_OPTION,
+        '#@Iterations([1-9]+[0-9]*)#' => Constants::ITERATIONS_OPTION,
+        '#@ParameterProvider(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => Constants::PARAMETER_PROVIDER_OPTION,
+        '#@BeforeMethod(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => Constants::BEFORE_METHOD_HOOK,
+        '#@AfterMethod(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => Constants::AFTER_METHOD_HOOK,
+        '#@BeforeBenchmark(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => Constants::BEFORE_CLASS_HOOK,
+        '#@AfterBenchmark(("[a-zA-Z0-9_]+", ?)?"[a-zA-Z0-9_]+")#' => Constants::AFTER_CLASS_HOOK
     ];
 
     /**
      *
      * @param $locator
      */
-    public function __construct(ServiceLocator $locator){
-        $this->serviceLocator = $locator;
+    public function __construct(){
         $this->lexer = new Lexer();
         $this->parser = new PhpDocParser(new TypeParser(), new ConstExprParser());
     }
 
-    /**
-     * Builds the bencjmarking recipe based on the annotations provided within the registered services.
-     * @throws \ReflectionException
-     */
-    public function buildBenchmarkRecipe(){
-        $providedServices = $this->serviceLocator->getProvidedServices();
-        $benchmarkCollection = new BenckmarkCollection();
-
-        if(is_array($providedServices) && count($providedServices)){
-            // there are services registered for benchmarking
-            foreach($providedServices as $providedService){
-                try{
-                    $reflection = new \ReflectionClass($providedService);
-                    $classDocs = $reflection->getDocComment();
-                    $benchmarkConfig = $this->parseAnnotations($classDocs);
-//                    foreach ($reflection->getMethods() as $method){
-////                        dump($method->getDocComment());
-//                    }
-                }catch (\ReflectionException $exception){
-                    throw $exception;
-                }
-            }
-        }
-        return $benchmarkCollection;
-    }
-
-    private function parseAnnotations(string $annotations, BenchmarkConfiguration $benchmarkConfig = null){
-        $benchmarkConfiguration = empty($benchmarkConfig)? new BenchmarkConfiguration(): $benchmarkConfig;
+    public function parseClassAnnotations(string $annotations, string $className){
+        $benchmarkConfiguration = new ClassBenchmarkConfiguration();
 
         $tokens = new TokenIterator($this->lexer->tokenize($annotations));
-        $annotationsNode = $this->parser->parse($tokens);
-        foreach ($annotationsNode->children as $childNode){
-            
-        }
-        dd($annotationsNode->children);
 
+        try{
+            $annotationsNode = $this->parser->parse($tokens);
+            foreach ($annotationsNode->children as $childNode){
+                if(isset($childNode->name)){
+                    // annotation
+                    $annotation = str_replace(Constants::ANNOTATION_CHARACTER, '', $childNode->name);
+                    $params = $this->parseParameters($childNode->value);
+                    switch ($annotation){
+                        case Constants::REVOLUTIONS_OPTION:
+                            // Revolutions
+                            $this->setRevolutions($benchmarkConfiguration, $params);
+                            break;
+                        case Constants::ITERATIONS_OPTION:
+                            $this->setIterations($benchmarkConfiguration, $params);
+                            break;
+                        case Constants::BEFORE_METHOD_HOOK:
+                        case Constants::AFTER_METHOD_HOOK:
+                            throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
+                            break;
+                        case Constants::BEFORE_CLASS_HOOK:
+                            if(is_array($params) && count($params) === 1){
+                                $params[1] = $params[0];
+                                $params[0] = $className;
+                            }
+                            $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::BEFORE_CLASS_HOOK);
+                            break;
+                        case Constants::AFTER_CLASS_HOOK:
+                            if(is_array($params) && count($params) === 1){
+                                $params[1] = $params[0];
+                                $params[0] = $className;
+                            }
+                            $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::AFTER_CLASS_HOOK);
+                            break;
+                        default:
+                            // do nothing
+                    }
+
+                }
+            }
+        }catch(ParserException $exception){
+            dump($exception->getMessage());
+        }
+        return $benchmarkConfiguration;
+    }
+
+    private function parseParameters($params):array{
+        $parsedParameters = explode(',',
+            preg_replace(self::PARAMETERS_REPLACE_PATTERN, '', $params));
+        return $parsedParameters;
+    }
+
+    private function validate($params):bool{
+        return (is_array($params) && count($params) === 1 && isset($params[0]) && is_numeric($params[0]));
+    }
+
+    private function validateHook($params):bool{
+        return (is_array($params) && (count($params) === 2 && method_exists($params[0], $params[1]) &&
+                    $this->checkStaticMethod($params[0], $params[1])));
+    }
+
+    private function checkStaticMethod($className, $methodName){
+        $reflectionMethod = new ReflectionMethod($className, $methodName);
+
+        return $reflectionMethod->isStatic();
+    }
+
+    public function parseMethodAnnotations(\ReflectionMethod $reflectionMethod){
+        $methodDocs = $reflectionMethod->getDocComment();
+        if($methodDocs){
+            $benchmarkConfiguration  = new MethodBenchmarkConfiguration();
+            $benchmarkConfiguration->setReflector($reflectionMethod);
+            $tokens = new TokenIterator($this->lexer->tokenize($methodDocs));
+
+            try {
+                $annotationsNode = $this->parser->parse($tokens);
+                foreach ($annotationsNode->children as $childNode){
+                    if(isset($childNode->name)){
+                        // annotation
+                        $annotation = str_replace(Constants::ANNOTATION_CHARACTER, '', $childNode->name);
+                        $params = $this->parseParameters($childNode->value);
+                        switch ($annotation){
+                            case Constants::REVOLUTIONS_OPTION:
+                                // Revolutions
+                                $this->setRevolutions($benchmarkConfiguration, $params);
+                                break;
+                            case Constants::ITERATIONS_OPTION:
+                                $this->setIterations($benchmarkConfiguration, $params);
+                                break;
+                            case Constants::BEFORE_METHOD_HOOK:
+                                if(is_array($params) && count($params) === 1){
+                                    $params[1] = $params[0];
+                                    $params[0] = $reflectionMethod->getDeclaringClass()->getName();
+
+                                }
+                                $benchmarkConfiguration = $this->setMethodHook($benchmarkConfiguration, $params, Constants::BEFORE_METHOD_HOOK);
+                            break;
+                            case Constants::AFTER_METHOD_HOOK:
+                                if(is_array($params) && count($params) === 1){
+                                    $params[1] = $params[0];
+                                    $params[0] = $reflectionMethod->getDeclaringClass()->getName();
+                                }
+                                $benchmarkConfiguration = $this->setMethodHook($benchmarkConfiguration, $params, Constants::AFTER_METHOD_HOOK);
+                                break;
+                            case Constants::BEFORE_CLASS_HOOK:
+                            case Constants::AFTER_CLASS_HOOK:
+                                throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
+                                break;
+                            default:
+                                // do nothing
+                        }
+
+                    }
+                }
+            }catch (ParserException $exception){
+                dd($exception->getMessage());
+            }
+            //dump($benchmarkConfiguration);
+        }
+
+        return isset($benchmarkConfiguration)?$benchmarkConfiguration:false;
+    }
+
+    protected function setRevolutions(AbstractBenchmarkConfiguration &$benchmarkConfiguration, array $params): void{
+        if($this->validate($params)){
+            // the annotation is correct
+            $benchmarkConfiguration->setNumberOfRevolutions((int) $params[0]);
+        }else{
+            // TODO: throw an exception
+        }
+    }
+
+    protected function setIterations(AbstractBenchmarkConfiguration  &$benchmarkConfiguration, array $params):void{
+        if($this->validate($params)){
+            // the annotation is correct
+            $benchmarkConfiguration->setNumberOfIterations((int) $params[0]);
+        }else{
+            // TODO: throw an exception
+        }
+    }
+
+    protected function setClassHook(
+        AbstractBenchmarkConfiguration $benchmarkConfiguration,
+        array $params,
+        string $type): AbstractBenchmarkConfiguration{
+        if($this->validateHook($params)){
+            $hook = new ClassHook();
+            $hook->setClassName($params[0]);
+            $hook->setMethodName($params[1]);
+            $hook->setRunAfter($type === Constants::AFTER_CLASS_HOOK);
+            $benchmarkConfiguration->addHook($hook);
+        }else{
+            // TODO: throw a custom exception
+        }
+        return $benchmarkConfiguration;
+    }
+
+    protected function setMethodHook(
+        AbstractBenchmarkConfiguration $benchmarkConfiguration,
+        array $params,
+        string $type): AbstractBenchmarkConfiguration{
+        if($this->validateHook($params)){
+            $hook = new MethodHook();
+            $hook->setClassName($params[0]);
+            $hook->setMethodName($params[1]);
+            $hook->setRunAfter($type === Constants::AFTER_METHOD_HOOK);
+            $benchmarkConfiguration->addHook($hook);
+        }else{
+            // TODO: throw a custom exception
+        }
         return $benchmarkConfiguration;
     }
 }
