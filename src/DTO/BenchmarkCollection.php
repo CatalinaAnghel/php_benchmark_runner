@@ -40,7 +40,7 @@ class BenchmarkCollection {
      * @param int|false $postition
      */
     public function addBenchmark(Benchmark $benchmark, $postition = false):void {
-        if($postition !== false){
+        if(false !== $postition){
             $this->benchmarks[$position] = $benchmark;
         }else{
             $this->benchmarks[] = $benchmark;

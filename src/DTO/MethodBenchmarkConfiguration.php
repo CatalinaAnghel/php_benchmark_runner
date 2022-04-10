@@ -10,10 +10,29 @@ use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractHook;
  */
 class MethodBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
     /**
+     * @var ParamProvider $paramProvider
+     */
+    protected $paramProvider;
+
+    /**
      * MethodBenchmarkConfiguration constructor
      */
     public function __construct(){
         $this->init();
+    }
+
+    /**
+     * @return ParamProvider
+     */
+    public function getParamProvider(): ParamProvider{
+        return $this->paramProvider;
+    }
+
+    /**
+     * @param ParamProvider $paramProvider
+     */
+    public function setParamProvider(ParamProvider $paramProvider): void{
+        $this->paramProvider = $paramProvider;
     }
 
     /**

@@ -19,20 +19,35 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
      */
     private $serviceLocator;
 
-    public function __construct(AnnotationMapper $annotationMapper, ServiceLocator $serviceLocator){
+    /**
+     * @var ServiceLocator $providersServiceLocator
+     */
+    private $providersServiceLocator;
+
+    public function __construct(AnnotationMapper $annotationMapper, ServiceLocator $serviceLocator = null, ServiceLocator $providersLocator = null){
         $this->annotationMapper = $annotationMapper;
         $this->serviceLocator = $serviceLocator;
+        $this->providersServiceLocator = $providersLocator;
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function buildBenchmark():void{
-        $this->buildBenchmarkRecipe();
+        if(null !== $this->serviceLocator){
+            $this->buildBenchmarkRecipe();
+        }else{
+            throw new \Exception('The services cannot be instantiated: Invalid Service Locator configuration');
+        }
+
     }
 
     /**
      * Builds the bencjmarking recipe based on the annotations provided within the registered services.
      * @throws \ReflectionException
+     * @return BenchmarkCollection
      */
-    public function buildBenchmarkRecipe(){
+    public function buildBenchmarkRecipe(): BenchmarkCollection{
         $providedServices = $this->serviceLocator->getProvidedServices();
         $benchmarkCollection = new BenchmarkCollection();
 
@@ -57,15 +72,12 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
                         if(count($benchmark->getMethodBenchmarkConfigurations())){
                             $benchmarkCollection->addBenchmark($benchmark);
                         }
-
-
-
                     }
                 }catch (\ReflectionException $exception){
                     throw $exception;
                 }
             }
-        }dd($benchmarkCollection);
+        }
         return $benchmarkCollection;
     }
 }
