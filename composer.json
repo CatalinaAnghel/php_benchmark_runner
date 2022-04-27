@@ -10,7 +10,8 @@
             "MepProject\\PhpBenchmarkRunner\\Helper\\": "src/Helper/",
             "MepProject\\PhpBenchmarkRunner\\Exception\\": "src/Exception/",
             "MepProject\\PhpBenchmarkRunner\\DTO\\": "src/DTO/",
-            "MepProject\\PhpBenchmarkRunner\\DTO\\Abstractions\\": "src/DTO/Abstractions"
+            "MepProject\\PhpBenchmarkRunner\\DTO\\Abstractions\\": "src/DTO/Abstractions",
+            "MepProject\\PhpBenchmarkRunner\\Traits\\": "src/Traits"
         }
     },
     "require": {

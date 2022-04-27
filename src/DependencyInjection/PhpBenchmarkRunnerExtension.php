@@ -31,16 +31,28 @@ class PhpBenchmarkRunnerExtension extends Extension {
         // set the arguments for the benchmark runner
         $definition = $container->findDefinition('php_benchmark_runner.runner');
         $definition->setArgument(0, new Reference(AnnotationMapper::class));
+
+        // inject the service locator used for the analysed classes
         if(isset($config['locator'])){
             $definition->setArgument(1, new Reference($config['locator']));
         }else{
             $definition->setArgument(1, null);
         }
 
+        // inject the service locator used for the provider classes
         if(isset($config['providers_locator'])){
             $providersLocatorReference = new Reference($config['providers_locator']);
             $definition->setArgument(2, $providersLocatorReference);
+        }else{
+            $definition->setArgument(2, null);
         }
+
+        // prepare to inject the service locator used for the hooks classes
+        if(isset($config['hooks_locator'])){
+            $hooksLocatorReference = new Reference($config['hooks_locator']);
+            $definition->setArgument(3, $hooksLocatorReference);
+        }
+
         $container->registerForAutoconfiguration(PhpBenchmarkRunner::class);
 
         // set the arguments for the annotation mapper

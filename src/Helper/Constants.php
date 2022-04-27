@@ -18,4 +18,6 @@ class Constants{
     CONST AFTER_METHOD_HOOK = 'AfterMethod';
     CONST BEFORE_CLASS_HOOK = 'BeforeClass';
     CONST AFTER_CLASS_HOOK = 'AfterClass';
+
+    CONST BENCHMARK_ANNOTATION = 'Benchmark';
 }

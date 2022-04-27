@@ -3,8 +3,7 @@
 namespace MepProject\PhpBenchmarkRunner\Service;
 
 use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractBenchmarkConfiguration;
-use MepProject\PhpBenchmarkRunner\DTO\BenckmarkCollection;
-use MepProject\PhpBenchmarkRunner\DTO\BenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\ClassBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\ClassHook;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
@@ -35,14 +34,14 @@ class AnnotationMapper {
     private $parser;
 
     /**
-     * @var BenckmarkCollection $benchmarkCollection
+     * @var BenchmarkCollection $benchmarkCollection
      */
     private $benchmarkCollection;
 
     /**
-     * @var ServiceLocator $providersLocator
+     * @var ServiceLocator|null $providersLocator
      */
-    private $providersLocator;
+    private ?ServiceLocator $providersLocator;
 
     protected $patterns = [
         '#@Revolutions([1-9]+[0-9]*)#' => Constants::REVOLUTIONS_OPTION,
@@ -70,55 +69,63 @@ class AnnotationMapper {
      * @return AbstractBenchmarkConfiguration|ClassBenchmarkConfiguration
      */
     public function parseClassAnnotations(string $annotations, string $className){
-        $benchmarkConfiguration = new ClassBenchmarkConfiguration();
-
         $tokens = new TokenIterator($this->lexer->tokenize($annotations));
-
         try{
             $annotationsNode = $this->parser->parse($tokens);
-            foreach ($annotationsNode->children as $childNode){
-                if(isset($childNode->name)){
-                    // annotation
-                    $annotation = str_replace(Constants::ANNOTATION_CHARACTER, '', $childNode->name);
-                    $params = $this->parseParameters($childNode->value);
-                    switch ($annotation){
-                        case Constants::REVOLUTIONS_OPTION:
-                            // Revolutions
-                            $this->setRevolutions($benchmarkConfiguration, $params);
-                            break;
-                        case Constants::ITERATIONS_OPTION:
-                            $this->setIterations($benchmarkConfiguration, $params);
-                            break;
-                        case Constants::BEFORE_METHOD_HOOK:
-                        case Constants::AFTER_METHOD_HOOK:
-                            throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
-                            break;
-                        case Constants::BEFORE_CLASS_HOOK:
-                            if(is_array($params) && 1 === count($params)){
-                                $params[1] = $params[0];
-                                $params[0] = $className;
-                            }
-                            $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::BEFORE_CLASS_HOOK);
-                            break;
-                        case Constants::AFTER_CLASS_HOOK:
-                            if(is_array($params) && 1 === count($params)){
-                                $params[1] = $params[0];
-                                $params[0] = $className;
-                            }
-                            $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::AFTER_CLASS_HOOK);
-                            break;
-                        case Constants::PARAMETER_PROVIDER_OPTION:
-                            throw new Exception('Parameter provider invalid configuration');
-                        default:
-                            // do nothing
-                    }
+            $matches = array_filter(
+                $annotationsNode->children,
+                function ($element) {
+                    return isset($element->name) &&
+                        $element->name === Constants::ANNOTATION_CHARACTER . Constants::BENCHMARK_ANNOTATION;
+                }
+            );
+            if(count($matches)){
+                $benchmarkConfiguration = new ClassBenchmarkConfiguration();
 
+                foreach ($annotationsNode->children as $childNode){
+                    if(isset($childNode->name)){
+                        // annotation
+                        $annotation = str_replace(Constants::ANNOTATION_CHARACTER, '', $childNode->name);
+                        $params = $this->parseParameters($childNode->value);
+                        switch ($annotation){
+                            case Constants::REVOLUTIONS_OPTION:
+                                // Revolutions
+                                $this->setRevolutions($benchmarkConfiguration, $params);
+                                break;
+                            case Constants::ITERATIONS_OPTION:
+                                $this->setIterations($benchmarkConfiguration, $params);
+                                break;
+                            case Constants::BEFORE_METHOD_HOOK:
+                            case Constants::AFTER_METHOD_HOOK:
+                                throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
+                                break;
+                            case Constants::BEFORE_CLASS_HOOK:
+                                if(is_array($params) && 1 === count($params)){
+                                    $params[1] = $params[0];
+                                    $params[0] = $className;
+                                }
+                                $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::BEFORE_CLASS_HOOK);
+                                break;
+                            case Constants::AFTER_CLASS_HOOK:
+                                if(is_array($params) && 1 === count($params)){
+                                    $params[1] = $params[0];
+                                    $params[0] = $className;
+                                }
+                                $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::AFTER_CLASS_HOOK);
+                                break;
+                            case Constants::PARAMETER_PROVIDER_OPTION:
+                                throw new Exception('Parameter provider invalid configuration');
+                            default:
+                                // do nothing
+                        }
+
+                    }
                 }
             }
         }catch(ParserException $exception){
             dump($exception->getMessage());
         }
-        return $benchmarkConfiguration;
+        return $benchmarkConfiguration?? false;
     }
 
     /**

@@ -16,6 +16,9 @@ class Configuration implements ConfigurationInterface {
             ->scalarNode('providers_locator')
             ->defaultNull()
             ->end()
+            ->scalarNode('hooks_locator')
+            ->defaultNull()
+            ->end()
         ->end();
 
         return $threeBuilder;

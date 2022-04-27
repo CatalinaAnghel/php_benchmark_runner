@@ -6,18 +6,18 @@ abstract class AbstractHook{
     /**
      * @var string $className
      */
-    protected $className;
+    protected string $className;
 
     /**
      * @var string $methodName
      */
-    protected $methodName;
+    protected string $methodName;
 
     /**
      * If the hook will be run before or after the class
      * @var bool $runAfter
      */
-    protected $runAfter;
+    protected bool $runAfter;
 
     /**
      * @return string
@@ -65,7 +65,7 @@ abstract class AbstractHook{
      * Validate if the hook is correctly created
      * @return bool
      */
-    public abstract function validate():bool;
+    abstract public function validate():bool;
 
     /**
      * Returns the type of the hook (class or method)
