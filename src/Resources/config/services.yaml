@@ -2,7 +2,12 @@ services:
   MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner:
     public: true
 
-  MepProject\PhpBenchmarkRunner\Service\AnnotationMapper: ~
+  MepProject\PhpBenchmarkRunner\Service\AnnotationMapper:
+    public: true
+    arguments:
+      $validator: '@php_benchmark_runner.validator'
+
+  MepProject\PhpBenchmarkRunner\Service\BenchmarkValidator: ~
 
   php_benchmark_runner.runner:
     alias: MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner
@@ -11,3 +16,6 @@ services:
 
   php_benchmark_runner.annotation_mapper:
     alias: MepProject\PhpBenchmarkRunner\Service\AnnotationMapper
+
+  php_benchmark_runner.validator:
+    alias: MepProject\PhpBenchmarkRunner\Service\BenchmarkValidator

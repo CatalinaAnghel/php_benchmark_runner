@@ -19,6 +19,15 @@ class Configuration implements ConfigurationInterface {
             ->scalarNode('hooks_locator')
             ->defaultNull()
             ->end()
+            ->arrayNode('parallel')
+                ->children()
+                    ->booleanNode('enabled')
+                    ->defaultFalse()
+                    ->end()
+                    ->integerNode('threads_number')
+                    ->defaultValue(100)
+                    ->end()
+            ->end()
         ->end();
 
         return $threeBuilder;

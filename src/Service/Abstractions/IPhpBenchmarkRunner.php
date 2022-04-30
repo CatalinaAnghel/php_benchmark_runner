@@ -10,11 +10,6 @@ interface IPhpBenchmarkRunner{
      */
     public function buildBenchmark():void;
 
-    /**
-     * Builds the bencjmarking recipe based on the annotations provided within the registered services.
-     * @return BenchmarkCollection
-     */
-    public function buildBenchmarkRecipe(): BenchmarkCollection;
 
     /**
      * Benchmark based on the benchmarking plan

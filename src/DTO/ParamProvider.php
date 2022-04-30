@@ -6,12 +6,12 @@ class ParamProvider{
     /**
      * @var string $className
      */
-    protected $className;
+    protected string $className;
 
     /**
      * @var string $methodName
      */
-    protected $methodName;
+    protected string $methodName;
 
     /**
      * @return string
