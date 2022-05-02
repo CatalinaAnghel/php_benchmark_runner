@@ -15,7 +15,6 @@ use MepProject\PhpBenchmarkRunner\Helper\Constants;
 use MepProject\PhpBenchmarkRunner\Traits\SubscribedServiceTrait;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\ParserException;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\PhpDocParser\Parser\TypeParser;
@@ -50,20 +49,30 @@ class AnnotationMapper {
      */
     protected ?ServiceLocator $providersLocator;
 
+    /**
+     * @var BenchmarkValidator $validator
+     */
     protected BenchmarkValidator $validator;
+
+    /**
+     * @var array $limitConfig
+     */
+    protected array $limitConfig;
 
     use SubscribedServiceTrait;
 
     /**
      *
      * @param BenchmarkValidator $validator
+     * @param array $limitConfig
      * @param ServiceLocator|null $serviceLocator
      * @param ServiceLocator|null $providersLocator
      */
-    public function __construct(BenchmarkValidator $validator, ?ServiceLocator $serviceLocator = null, ?ServiceLocator $providersLocator = null){
+    public function __construct(BenchmarkValidator $validator, array $limitConfig, ?ServiceLocator $serviceLocator = null, ?ServiceLocator $providersLocator = null){
         $this->lexer = new Lexer();
         $this->parser = new PhpDocParser(new TypeParser(), new ConstExprParser());
         $this->validator = $validator;
+        $this->limitConfig = $limitConfig;
         $this->serviceLocator = $serviceLocator;
         $this->providersLocator = $providersLocator;
     }
@@ -238,11 +247,11 @@ class AnnotationMapper {
      * @return AbstractBenchmarkConfiguration
      */
     protected function setRevolutions(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params): AbstractBenchmarkConfiguration{
-        if($this->validator->validate($params)){
+        if($this->validator->validate($params, $this->limitConfig['revolutions'])){
             // the annotation is correct
             $benchmarkConfiguration->setNumberOfRevolutions((int) $params[0]);
         }else{
-            // TODO: throw an exception
+            throw new Exception('Invalid revolutions configuration');
         }
 
         return $benchmarkConfiguration;
@@ -253,11 +262,11 @@ class AnnotationMapper {
      * @param array $params
      */
     protected function setIterations(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params):AbstractBenchmarkConfiguration{
-        if($this->validator->validate($params)){
+        if($this->validator->validate($params, $this->limitConfig['iterations'])){
             // the annotation is correct
             $benchmarkConfiguration->setNumberOfIterations((int) $params[0]);
         }else{
-            // TODO: throw an exception
+            throw new Exception('Invalid iterations configuration');
         }
 
         return $benchmarkConfiguration;
@@ -268,6 +277,7 @@ class AnnotationMapper {
      * @param array $params
      * @param string $type
      * @return AbstractBenchmarkConfiguration
+     * @throws \ReflectionException
      */
     protected function setClassHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration{
         if($this->validator->validateHook($params, true)){
@@ -277,7 +287,7 @@ class AnnotationMapper {
             $hook->setRunAfter($type === Constants::AFTER_CLASS_HOOK);
             $benchmarkConfiguration->addHook($hook);
         }else{
-            // TODO: throw a custom exception
+            throw new Exception('Invalid class hook configuration');
         }
         return $benchmarkConfiguration;
     }
@@ -297,7 +307,7 @@ class AnnotationMapper {
             $hook->setRunAfter($type === Constants::AFTER_METHOD_HOOK);
             $benchmarkConfiguration->addHook($hook);
         }else{
-            // TODO: throw a custom exception
+            throw new Exception('Invalid method hook configuration');
         }
         return $benchmarkConfiguration;
     }

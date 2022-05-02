@@ -22,4 +22,5 @@ class Constants{
     CONST BENCHMARK_ANNOTATION = 'Benchmark';
     CONST BENCHMARK_METHOD_ANNOTATION = 'BenchmarkMethod';
 
+    CONST UNITS = ['B','kB','MB','GB'];
 }

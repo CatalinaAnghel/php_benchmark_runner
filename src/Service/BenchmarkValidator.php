@@ -12,8 +12,9 @@ class BenchmarkValidator{
      * @param $params
      * @return bool
      */
-    public function validate($params):bool{
-        return (is_array($params) && 1 === count($params) && isset($params[0]) && is_numeric($params[0]));
+    public function validate($params, $limit):bool{
+        return (is_array($params) && 1 === count($params) && isset($params[0]) &&
+            is_numeric($params[0]) && $params[0] <= (int)$limit);
     }
 
     /**
