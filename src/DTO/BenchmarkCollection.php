@@ -2,8 +2,6 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractBenchmarkConfiguration;
-
 /**
  * class BenchmarkCollection
  * @author Catalina Anghel

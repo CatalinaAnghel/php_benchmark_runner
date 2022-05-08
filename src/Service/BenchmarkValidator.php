@@ -2,15 +2,24 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
-use Symfony\Component\Config\Definition\Exception\Exception;
+use MepProject\PhpBenchmarkRunner\Service\Contracts\BenchmarkValidatorInterface;
 
 /**
  * BenchmarkValidator service
  */
-class BenchmarkValidator{
+class BenchmarkValidator implements BenchmarkValidatorInterface {
     /**
-     * @param $params
+     * @param string $className
+     * @param string $methodName
      * @return bool
+     * @throws \ReflectionException
+     */
+    private function checkStaticMethod(string $className, string $methodName):bool{
+        return (new \ReflectionMethod($className, $methodName))->isStatic();
+    }
+
+    /**
+     * {@inheritDoc)
      */
     public function validate($params, $limit):bool{
         return (is_array($params) && 1 === count($params) && isset($params[0]) &&
@@ -18,9 +27,7 @@ class BenchmarkValidator{
     }
 
     /**
-     * @param $params
-     * @param bool $checkStatic
-     * @return bool
+     * {@inheritDoc}
      * @throws \ReflectionException
      */
     public function validateHook($params, bool $checkStatic = false):bool{
@@ -29,20 +36,7 @@ class BenchmarkValidator{
     }
 
     /**
-     * @param $className
-     * @param $methodName
-     * @return bool
-     * @throws \ReflectionException
-     */
-    protected function checkStaticMethod($className, $methodName):bool{
-        return (new \ReflectionMethod($className, $methodName))->isStatic();
-    }
-
-    /**
-     *
-     * @param \Reflector $reflectionMethod
-     * @param \Generator $generator
-     * @return bool
+     * {@inheritDoc}
      */
     public function validateProvider(\Reflector $reflectionMethod, \Generator $generator): bool{
         $generatedParams = array();

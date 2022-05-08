@@ -2,9 +2,8 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractBenchmarkConfiguration;
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractHook;
-use MepProject\PhpBenchmarkRunner\DTO\ClassHook;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 
 class ClassBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
     /**

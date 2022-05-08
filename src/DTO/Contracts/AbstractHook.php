@@ -1,6 +1,6 @@
 <?php
 
-namespace MepProject\PhpBenchmarkRunner\DTO\Abstractions;
+namespace MepProject\PhpBenchmarkRunner\DTO\Contracts;
 
 abstract class AbstractHook{
     /**

@@ -1,4 +1,5 @@
 services:
+  # autowiring the services
   MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner:
     public: true
 
@@ -9,13 +10,16 @@ services:
 
   MepProject\PhpBenchmarkRunner\Service\BenchmarkValidator: ~
 
+  # defining aliases
   php_benchmark_runner.runner:
     alias: MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner
     public: true
-
 
   php_benchmark_runner.annotation_mapper:
     alias: MepProject\PhpBenchmarkRunner\Service\AnnotationMapper
 
   php_benchmark_runner.validator:
     alias: MepProject\PhpBenchmarkRunner\Service\BenchmarkValidator
+
+  MepProject\PhpBenchmarkRunner\Service\Contracts\BenchmarkValidatorInterface: '@php_benchmark_runner.validator'
+  MepProject\PhpBenchmarkRunner\Service\Contracts\AnnotationMapperInterface: '@php_benchmark_runner.annotation_mapper'

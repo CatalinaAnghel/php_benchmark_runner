@@ -1,6 +1,6 @@
 <?php
 
-namespace MepProject\PhpBenchmarkRunner\DTO\Abstractions;
+namespace MepProject\PhpBenchmarkRunner\DTO\Contracts;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Reflector;

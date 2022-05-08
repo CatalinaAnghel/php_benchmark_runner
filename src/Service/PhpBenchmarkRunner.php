@@ -2,11 +2,12 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractHook;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkResult;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
-use MepProject\PhpBenchmarkRunner\Service\Abstractions\IPhpBenchmarkRunner;
+use MepProject\PhpBenchmarkRunner\Service\Contracts\AnnotationMapperInterface;
+use MepProject\PhpBenchmarkRunner\Service\Contracts\PhpBenchmarkRunnerInterface;
 use MepProject\PhpBenchmarkRunner\Traits\MemoryConvertorTrait;
 use MepProject\PhpBenchmarkRunner\Traits\SubscribedServiceTrait;
 use Psr\Container\ContainerExceptionInterface;
@@ -14,11 +15,14 @@ use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
+/**
+ * Class PhpBenchmarkRunnerInterface.
+ */
+class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
     /**
-     * @var AnnotationMapper
+     * @var AnnotationMapperInterface
      */
-    protected AnnotationMapper $annotationMapper;
+    private AnnotationMapperInterface $annotationMapper;
 
     /**
      * @var ServiceLocator $serviceLocator
@@ -45,13 +49,13 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
     use MemoryConvertorTrait;
 
     /**
-     * @param AnnotationMapper $annotationMapper
+     * @param AnnotationMapperInterface $annotationMapper
      * @param array $parallelConfiguration
      * @param ServiceLocator|null $serviceLocator
      * @param ServiceLocator|null $providersLocator
      * @param ServiceLocator|null $hooksLocator
      */
-    public function __construct(AnnotationMapper $annotationMapper, array $parallelConfiguration, ServiceLocator $serviceLocator = null, ServiceLocator $providersLocator = null, ServiceLocator $hooksLocator = null){
+    public function __construct(AnnotationMapperInterface $annotationMapper, array $parallelConfiguration, ServiceLocator $serviceLocator = null, ServiceLocator $providersLocator = null, ServiceLocator $hooksLocator = null){
         $this->annotationMapper = $annotationMapper;
         $this->parallelConfiguration = $parallelConfiguration;
         $this->serviceLocator = $serviceLocator;
@@ -105,7 +109,6 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
                     $this->runMethodHooks($methodBenchmarkConfiguration->getHooks());
 
                     if(isset($this->parallelConfiguration['enabled']) && $this->parallelConfiguration['enabled']){
-                        //$this->runParallelBenchmark($methodBenchmarkConfiguration, $benchmark->getClassBenchmarkConfiguration());
                     }else{
                         $this->runSequentialBenchmark($methodBenchmarkConfiguration);
                     }
@@ -125,7 +128,7 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
      * @param array $hooks
      * @param bool $runAfter
      */
-    protected function runClassHooks(array $hooks, bool $runAfter = false):void{
+    private function runClassHooks(array $hooks, bool $runAfter = false):void{
         foreach ($hooks as $classHook) {
             if ($runAfter === $classHook->isRunAfter()) {
                 $method = $classHook->getMethodName();
@@ -140,7 +143,7 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    protected function runMethodHooks(array $hooks, bool $runAfter = false): void{
+    private function runMethodHooks(array $hooks, bool $runAfter = false): void{
         foreach ($hooks as $hook){
             if($runAfter === $hook->isRunAfter()){
                 $hookService = null;
@@ -157,10 +160,6 @@ class PhpBenchmarkRunner implements IPhpBenchmarkRunner{
             }
         }
     }
-
-//    private function runParallelBenchmark($methodBenchmarkConfiguration, $classBenchmarkConfiguration): Channel{
-//
-//    }
 
     /**
      * @param MethodBenchmarkConfiguration $methodBenchmarkConfiguration

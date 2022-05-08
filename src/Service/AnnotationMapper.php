@@ -2,16 +2,18 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\Benchmark;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\ClassBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\ClassHook;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\MethodHook;
 use MepProject\PhpBenchmarkRunner\DTO\ParamProvider;
 use MepProject\PhpBenchmarkRunner\Exception\ExceptionMessages;
 use MepProject\PhpBenchmarkRunner\Helper\Constants;
+use MepProject\PhpBenchmarkRunner\Service\Contracts\AnnotationMapperInterface;
+use MepProject\PhpBenchmarkRunner\Service\Contracts\BenchmarkValidatorInterface;
 use MepProject\PhpBenchmarkRunner\Traits\SubscribedServiceTrait;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
@@ -21,7 +23,7 @@ use PHPStan\PhpDocParser\Parser\TypeParser;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-class AnnotationMapper {
+class AnnotationMapper implements AnnotationMapperInterface {
     public CONST PARAMETERS_REPLACE_PATTERN = '~(\(|\)| |")~';
 
     /**
@@ -50,9 +52,9 @@ class AnnotationMapper {
     protected ?ServiceLocator $providersLocator;
 
     /**
-     * @var BenchmarkValidator $validator
+     * @var BenchmarkValidatorInterface $validator
      */
-    protected BenchmarkValidator $validator;
+    protected BenchmarkValidatorInterface $validator;
 
     /**
      * @var array $limitConfig
@@ -63,12 +65,12 @@ class AnnotationMapper {
 
     /**
      *
-     * @param BenchmarkValidator $validator
+     * @param BenchmarkValidatorInterface $validator
      * @param array $limitConfig
      * @param ServiceLocator|null $serviceLocator
      * @param ServiceLocator|null $providersLocator
      */
-    public function __construct(BenchmarkValidator $validator, array $limitConfig, ?ServiceLocator $serviceLocator = null, ?ServiceLocator $providersLocator = null){
+    public function __construct(BenchmarkValidatorInterface $validator, array $limitConfig, ?ServiceLocator $serviceLocator = null, ?ServiceLocator $providersLocator = null){
         $this->lexer = new Lexer();
         $this->parser = new PhpDocParser(new TypeParser(), new ConstExprParser());
         $this->validator = $validator;
@@ -80,9 +82,9 @@ class AnnotationMapper {
     /**
      * @param string $annotations
      * @param string $className
-     * @return AbstractBenchmarkConfiguration|ClassBenchmarkConfiguration
+     * @return AbstractBenchmarkConfiguration|null
      */
-    public function parseClassAnnotations(string $annotations, string $className){
+    private function parseClassAnnotations(string $annotations, string $className):?AbstractBenchmarkConfiguration{
         $tokens = new TokenIterator($this->lexer->tokenize($annotations));
         $annotationsNode = $this->parser->parse($tokens);
         $matches = array_filter(
@@ -111,7 +113,6 @@ class AnnotationMapper {
                         case Constants::BEFORE_METHOD_HOOK:
                         case Constants::AFTER_METHOD_HOOK:
                             throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
-                            break;
                         case Constants::BEFORE_CLASS_HOOK:
                             if(is_array($params) && 1 === count($params)){
                                 $params[1] = $params[0];
@@ -134,7 +135,7 @@ class AnnotationMapper {
                 }
             }
         }
-        return $benchmarkConfiguration?? false;
+        return $benchmarkConfiguration?? null;
     }
 
     /**
@@ -148,11 +149,11 @@ class AnnotationMapper {
 
     /**
      * @param \ReflectionMethod $reflectionMethod
-     * @param ClassBenchmarkConfiguration $classBenchmarkConfiguration
-     * @return false|AbstractBenchmarkConfiguration|MethodBenchmarkConfiguration
+     * @param AbstractBenchmarkConfiguration $classBenchmarkConfiguration
+     * @return AbstractBenchmarkConfiguration|null
      * @throws \ReflectionException
      */
-    public function parseMethodAnnotations(\ReflectionMethod $reflectionMethod, ClassBenchmarkConfiguration $classBenchmarkConfiguration){
+    private function parseMethodAnnotations(\ReflectionMethod $reflectionMethod, AbstractBenchmarkConfiguration $classBenchmarkConfiguration):?AbstractBenchmarkConfiguration{
         $methodDocs = $reflectionMethod->getDocComment();
         if($methodDocs){
             $tokens = new TokenIterator($this->lexer->tokenize($methodDocs));
@@ -198,7 +199,6 @@ class AnnotationMapper {
                             case Constants::BEFORE_CLASS_HOOK:
                             case Constants::AFTER_CLASS_HOOK:
                                 throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
-                                break;
                             case Constants::PARAMETER_PROVIDER_OPTION:
                                 $benchmarkConfiguration = $this->setProvider($benchmarkConfiguration, $params);
                                 break;
@@ -238,15 +238,15 @@ class AnnotationMapper {
             //dump($benchmarkConfiguration);
         }
 
-        return $benchmarkConfiguration ?? false;
+        return $benchmarkConfiguration ?? null;
     }
 
     /**
-     * @param AbstractBenchmarkConfiguration $benchmarkConfiguration
+     * @param AbstractBenchmarkConfiguration  $benchmarkConfiguration
      * @param array $params
      * @return AbstractBenchmarkConfiguration
      */
-    protected function setRevolutions(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params): AbstractBenchmarkConfiguration{
+    private function setRevolutions(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params): AbstractBenchmarkConfiguration{
         if($this->validator->validate($params, $this->limitConfig['revolutions'])){
             // the annotation is correct
             $benchmarkConfiguration->setNumberOfRevolutions((int) $params[0]);
@@ -261,7 +261,7 @@ class AnnotationMapper {
      * @param AbstractBenchmarkConfiguration $benchmarkConfiguration
      * @param array $params
      */
-    protected function setIterations(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params):AbstractBenchmarkConfiguration{
+    private function setIterations(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params):AbstractBenchmarkConfiguration{
         if($this->validator->validate($params, $this->limitConfig['iterations'])){
             // the annotation is correct
             $benchmarkConfiguration->setNumberOfIterations((int) $params[0]);
@@ -277,9 +277,8 @@ class AnnotationMapper {
      * @param array $params
      * @param string $type
      * @return AbstractBenchmarkConfiguration
-     * @throws \ReflectionException
      */
-    protected function setClassHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration{
+    private function setClassHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration{
         if($this->validator->validateHook($params, true)){
             $hook = new ClassHook();
             $hook->setClassName($params[0]);
@@ -297,9 +296,8 @@ class AnnotationMapper {
      * @param array $params
      * @param string $type
      * @return AbstractBenchmarkConfiguration
-     * @throws \ReflectionException
      */
-    protected function setMethodHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration{
+    private function setMethodHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration{
         if($this->validator->validateHook($params)){
             $hook = new MethodHook();
             $hook->setClassName($params[0]);
@@ -317,7 +315,7 @@ class AnnotationMapper {
      * @param array $params
      * @return AbstractBenchmarkConfiguration
      */
-    public function setProvider(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params): AbstractBenchmarkConfiguration{
+    private function setProvider(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params): AbstractBenchmarkConfiguration{
         if(null !== $this->providersLocator &&
             isset($params[0], $params[1], $this->providersLocator->getProvidedServices()[self::getIndex($params[0])]) &&
             method_exists($this->providersLocator->getProvidedServices()[self::getIndex($params[0])], $params[1])
@@ -355,12 +353,12 @@ class AnnotationMapper {
                 if ($classDocs) {
                     $benchmark = new Benchmark();
                     $classBenchmarkConfiguration = $this->parseClassAnnotations($classDocs, $reflection->getName());
-                    if ($classBenchmarkConfiguration) {
+                    if (null !== $classBenchmarkConfiguration) {
                         $classBenchmarkConfiguration->setReflector($reflection);
                         $benchmark->setClassBenchmarkConfiguration($classBenchmarkConfiguration);
                         foreach ($reflection->getMethods() as $method) {
                             $methodBenchmarkConfiguration = $this->parseMethodAnnotations($method, $classBenchmarkConfiguration);
-                            if ($methodBenchmarkConfiguration) {
+                            if (null !== $methodBenchmarkConfiguration) {
                                 $benchmark->addMethodBenchmarkConfiguration($methodBenchmarkConfiguration);
                             }
                         }

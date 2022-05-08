@@ -2,43 +2,44 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-use MepProject\PhpBenchmarkRunner\DTO\ClassBenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
+
 class Benchmark{
     /**
-     * @var ClassBenchmarkConfiguration $classBenchmarkConfiguration
+     * @var AbstractBenchmarkConfiguration $classBenchmarkConfiguration
      */
-    protected ClassBenchmarkConfiguration $classBenchmarkConfiguration;
+    protected AbstractBenchmarkConfiguration $classBenchmarkConfiguration;
 
     /**
-     * @var MethodBenchmarkConfiguration[]|null $methodBenchmarkConfigurations
+     * @var AbstractBenchmarkConfiguration[]|null $methodBenchmarkConfigurations
      */
     protected ?array $methodBenchmarkConfigurations;
 
     /**
-     * @return ClassBenchmarkConfiguration
+     * @return AbstractBenchmarkConfiguration
      */
-    public function getClassBenchmarkConfiguration(): ClassBenchmarkConfiguration{
+    public function getClassBenchmarkConfiguration(): AbstractBenchmarkConfiguration{
         return $this->classBenchmarkConfiguration;
     }
 
     /**
-     * @param ClassBenchmarkConfiguration $classBenchmarkConfiguration
+     * @param AbstractBenchmarkConfiguration $classBenchmarkConfiguration
      */
-    public function setClassBenchmarkConfiguration(ClassBenchmarkConfiguration $classBenchmarkConfiguration): void{
+    public function setClassBenchmarkConfiguration(AbstractBenchmarkConfiguration $classBenchmarkConfiguration): void{
         $this->classBenchmarkConfiguration = $classBenchmarkConfiguration;
     }
 
     /**
-     * @return MethodBenchmarkConfiguration[]|null
+     * @return AbstractBenchmarkConfiguration[]|null
      */
     public function getMethodBenchmarkConfigurations(): ?array{
         return $this->methodBenchmarkConfigurations;
     }
 
     /**
-     * @param MethodBenchmarkConfiguration $methodBenchmarkConfiguration
+     * @param AbstractBenchmarkConfiguration $methodBenchmarkConfiguration
      */
-    public function addMethodBenchmarkConfiguration(MethodBenchmarkConfiguration $methodBenchmarkConfiguration): void{
+    public function addMethodBenchmarkConfiguration(AbstractBenchmarkConfiguration $methodBenchmarkConfiguration): void{
         $this->methodBenchmarkConfigurations[] = $methodBenchmarkConfiguration;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-use MepProject\PhpBenchmarkRunner\DTO\Abstractions\AbstractHook;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 
 /**
  * class ClassHook

@@ -5,7 +5,7 @@ namespace MepProject\PhpBenchmarkRunner\DependencyInjection;
 use MepProject\PhpBenchmarkRunner\Helper\OptionsMapper;
 use MepProject\PhpBenchmarkRunner\Service\AnnotationMapper;
 use MepProject\PhpBenchmarkRunner\Service\BenchmarkValidator;
-use MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner;
+use MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunnerInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -58,7 +58,7 @@ class PhpBenchmarkRunnerExtension extends Extension {
             $definition->setArgument(4, null);
         }
 
-        $container->registerForAutoconfiguration(PhpBenchmarkRunner::class);
+        $container->registerForAutoconfiguration(PhpBenchmarkRunnerInterface::class);
 
         // set the arguments for the annotation mapper
         $annotationMapperDefinition = $container->findDefinition('php_benchmark_runner.annotation_mapper');
