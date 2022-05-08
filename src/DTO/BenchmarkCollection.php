@@ -12,7 +12,7 @@ class BenchmarkCollection {
     /**
      * @var Benchmark[]|null $benchmarks
      */
-    protected $benchmarks;
+    protected ?array $benchmarks;
 
     /**
      * BenchmarkCollection constructor

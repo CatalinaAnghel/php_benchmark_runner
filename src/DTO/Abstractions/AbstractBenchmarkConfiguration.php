@@ -10,24 +10,24 @@ abstract class AbstractBenchmarkConfiguration{
      * The number of revolutions that will be performed
      * @var int $numberOfRevolutions
      */
-    protected $numberOfRevolutions;
+    protected int $numberOfRevolutions;
 
     /**
      * The number of iterations that will be performed on a benchmark
      * @var int $numberOfIterations
      */
-    protected $numberOfIterations;
+    protected int $numberOfIterations;
 
     /**
      * The hooks that will be applied while running the benchmark
      * @var AbstractHook[]|null $hooks
      */
-    protected $hooks;
+    protected ?array $hooks;
 
     /**
      * @var Reflector $reflector
      */
-    protected $reflector;
+    protected Reflector $reflector;
 
     /**
      * Init
@@ -105,5 +105,5 @@ abstract class AbstractBenchmarkConfiguration{
      * @param AbstractHook $hook
      * @return bool
      */
-    public abstract function validateHook(AbstractHook $hook):bool;
+    abstract public function validateHook(AbstractHook $hook):bool;
 }

@@ -2,16 +2,17 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
+use MepProject\PhpBenchmarkRunner\DTO\ClassBenchmarkConfiguration;
 class Benchmark{
     /**
      * @var ClassBenchmarkConfiguration $classBenchmarkConfiguration
      */
-    protected $classBenchmarkConfiguration;
+    protected ClassBenchmarkConfiguration $classBenchmarkConfiguration;
 
     /**
      * @var MethodBenchmarkConfiguration[]|null $methodBenchmarkConfigurations
      */
-    protected $methodBenchmarkConfigurations;
+    protected ?array $methodBenchmarkConfigurations;
 
     /**
      * @return ClassBenchmarkConfiguration
