@@ -84,10 +84,10 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @throws \RuntimeException
      * @throws ContainerExceptionInterface
      */
-    public function buildBenchmark(): void{
+    public function buildBenchmark(): array{
         if (null !== $this->serviceLocator) {
             $benchmarkCollection = $this->annotationMapper->buildBenchmarkRecipe();
-            $results = $this->runBenchmark($benchmarkCollection);
+            return $this->runBenchmark($benchmarkCollection);
         } else {
             throw new \RuntimeException('The services cannot be instantiated: Invalid Service Locator configuration');
         }
@@ -100,6 +100,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @throws NotFoundExceptionInterface|ContainerExceptionInterface
      */
     public function runBenchmark(BenchmarkCollection $benchmarkCollection): array{
+        $results = array();
         if (is_array($benchmarkCollection->getBenchmarks()) && count($benchmarkCollection->getBenchmarks())) {
             foreach ($benchmarkCollection->getBenchmarks() as $benchmark) {
                 // run the before class hooks
@@ -110,7 +111,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
 
                     if(isset($this->parallelConfiguration['enabled']) && $this->parallelConfiguration['enabled']){
                     }else{
-                        $this->runSequentialBenchmark($methodBenchmarkConfiguration);
+                        $results[] = $this->runSequentialBenchmark($methodBenchmarkConfiguration);
                     }
 
                     $this->runMethodHooks($methodBenchmarkConfiguration->getHooks(), true);
@@ -120,8 +121,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
                 $this->runClassHooks($benchmark->getClassBenchmarkConfiguration()->getHooks(), true);
             }
         }
-
-        return [];
+        return $results;
     }
 
     /**
@@ -166,7 +166,6 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @return BenchmarkResult
      */
     private function runSequentialBenchmark(MethodBenchmarkConfiguration $methodBenchmarkConfiguration): BenchmarkResult{
-        $iterationResults = array();
         $benchmarkResult = new BenchmarkResult();
         $benchmarkResult->setIterationsNumber($methodBenchmarkConfiguration->getNumberOfIterations());
         $benchmarkResult->setRevolutionsNumber($methodBenchmarkConfiguration->getNumberOfRevolutions());
@@ -180,7 +179,8 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
                 if(null !== $providerInfo){
                     $providerInstance = $this->providersServiceLocator->get(self::getIndex($providerInfo->getClassName()));
                 }
-
+                $revolutionResults[$revolution]['initial_memory'] = memory_get_usage();
+                $profiler = new MemoryProfiler();
                 $startTime = microtime(true);
                 if(isset($providerInstance)){
                     // a parameter provider has been defined
@@ -190,21 +190,27 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
                     foreach ($paramsGenerator as $params){
                         $generatedParams[] = $params;
                     }
-
+                    $profiler->start();
                     call_user_func_array(array($serviceInstance, $methodName), $generatedParams);
                 }else{
+                    $profiler->start();
                     $serviceInstance->$methodName();
                 }
+                $profiler->stop();
+                $revolutionResults[$revolution]['memory_data'] = $profiler->getMemoryProfileArray();
                 $endTime = microtime(true);
-                $revolutionResults[$revolution]['memory'] = memory_get_usage();
+                $revolutionResults[$revolution]['final_memory'] = memory_get_usage();
+                $revolutionResults[$revolution]['memory'] = $revolutionResults[$revolution]['final_memory'] -
+                    $revolutionResults[$revolution]['initial_memory'];
                 $revolutionResults[$revolution]['execution_time'] = $endTime - $startTime;
-
             }
             $totalRevTime = 0;
             $totalRevMemory = 0;
             foreach ($revolutionResults as $result){
                 $totalRevTime += $result['execution_time'];
-                $totalRevMemory += $result['memory'];
+                foreach ($result['memory_data'] as $memoryData){
+                    $totalRevMemory += $memoryData['memory'];
+                }
             }
             $totalRevTime /= count($revolutionResults);
             $totalRevMemory /= count($revolutionResults);

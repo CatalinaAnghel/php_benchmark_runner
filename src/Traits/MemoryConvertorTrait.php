@@ -12,7 +12,7 @@ trait MemoryConvertorTrait{
      */
     protected function convert($size):MemoryResult{
         $memoryResult = new MemoryResult();
-        $memoryResult->setValue(round($size/ (1024 ** ($i = floor(log($size, 1024)))),6));
+        $memoryResult->setValue(round($size/ (1024 ** ($i = floor(log($size, 1024)))),10));
         $memoryResult->setUnit(Constants::UNITS[$i]);
         return $memoryResult;
     }
