@@ -4,7 +4,6 @@ namespace MepProject\PhpBenchmarkRunner\DependencyInjection;
 
 use MepProject\PhpBenchmarkRunner\Service\AnnotationMapper;
 use MepProject\PhpBenchmarkRunner\Service\BenchmarkValidator;
-use MepProject\PhpBenchmarkRunner\Service\PhpBenchmarkRunner;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -20,8 +19,8 @@ class PhpBenchmarkRunnerExtension extends Extension {
      * @param ContainerBuilder $container
      * @throws \Exception
      */
-    public function load(array $configs, ContainerBuilder $container):void{
-        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+    public function load(array $configs, ContainerBuilder $container): void {
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');
 
         $configuration = $this->getConfiguration($configs, $container);
@@ -33,26 +32,26 @@ class PhpBenchmarkRunnerExtension extends Extension {
         // parallel configuration
         $definition->setArgument(1, $config['parallel']);
         // inject the service locator used for the analysed classes
-        if(isset($config['locator'])){
+        if (isset($config['locator'])) {
             $serviceLocatorReference = new Reference($config['locator']);
             $definition->setArgument(2, $serviceLocatorReference);
-        }else{
+        } else {
             $definition->setArgument(2, null);
         }
 
         // inject the service locator used for the provider classes
-        if(isset($config['providers_locator'])){
+        if (isset($config['providers_locator'])) {
             $providersLocatorReference = new Reference($config['providers_locator']);
             $definition->setArgument(3, $providersLocatorReference);
-        }else{
+        } else {
             $definition->setArgument(3, null);
         }
 
         // prepare to inject the service locator used for the hooks classes
-        if(isset($config['hooks_locator'])){
+        if (isset($config['hooks_locator'])) {
             $hooksLocatorReference = new Reference($config['hooks_locator']);
             $definition->setArgument(4, $hooksLocatorReference);
-        }else{
+        } else {
             $definition->setArgument(4, null);
         }
 
@@ -63,14 +62,14 @@ class PhpBenchmarkRunnerExtension extends Extension {
         $annotationMapperDefinition->setArgument(0, new Reference(BenchmarkValidator::class));
         $annotationMapperDefinition->setArgument(1, $config['limit']);
 
-        if(isset($serviceLocatorReference)){
+        if (isset($serviceLocatorReference)) {
             $annotationMapperDefinition->setArgument(2, $serviceLocatorReference);
-        }else{
+        } else {
             $annotationMapperDefinition->setArgument(2, null);
         }
-        if(isset($providersLocatorReference)){
+        if (isset($providersLocatorReference)) {
             $annotationMapperDefinition->setArgument(3, $providersLocatorReference);
-        }else{
+        } else {
             $annotationMapperDefinition->setArgument(3, null);
         }
 

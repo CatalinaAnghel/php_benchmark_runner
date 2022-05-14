@@ -5,7 +5,7 @@ namespace MepProject\PhpBenchmarkRunner\DTO\Contracts;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Reflector;
 
-abstract class AbstractBenchmarkConfiguration{
+abstract class AbstractBenchmarkConfiguration {
     /**
      * The number of revolutions that will be performed
      * @var int $numberOfRevolutions
@@ -32,7 +32,7 @@ abstract class AbstractBenchmarkConfiguration{
     /**
      * Init
      */
-    public function init(){
+    public function init() {
         $this->numberOfRevolutions = 1;
         $this->numberOfIterations = 1;
         $this->hooks = array();
@@ -41,60 +41,60 @@ abstract class AbstractBenchmarkConfiguration{
     /**
      * @return int
      */
-    public function getNumberOfRevolutions(): int{
+    public function getNumberOfRevolutions(): int {
         return $this->numberOfRevolutions;
     }
 
     /**
      * @param int $numberOfRevolutions
      */
-    public function setNumberOfRevolutions(int $numberOfRevolutions): void{
+    public function setNumberOfRevolutions(int $numberOfRevolutions): void {
         $this->numberOfRevolutions = $numberOfRevolutions;
     }
 
     /**
      * @return int
      */
-    public function getNumberOfIterations(): int{
+    public function getNumberOfIterations(): int {
         return $this->numberOfIterations;
     }
 
     /**
      * @param int $numberOfIterations
      */
-    public function setNumberOfIterations(int $numberOfIterations): void{
+    public function setNumberOfIterations(int $numberOfIterations): void {
         $this->numberOfIterations = $numberOfIterations;
     }
 
     /**
      * @return AbstractHook[]|null
      */
-    public function getHooks(): ?array{
+    public function getHooks(): ?array {
         return $this->hooks;
     }
 
     /**
      * @param AbstractHook $hook
      */
-    public function addHook(AbstractHook $hook):void{
-        if($this->validateHook($hook)){
+    public function addHook(AbstractHook $hook): void {
+        if ($this->validateHook($hook)) {
             $this->hooks[] = $hook;
-        }else{
-            throw new Exception('Invalid hook configuration');
+        } else {
+            throw new \Exception('Invalid hook configuration');
         }
     }
 
     /**
      * @return Reflector
      */
-    public function getReflector(): Reflector{
+    public function getReflector(): Reflector {
         return $this->reflector;
     }
 
     /**
      * @param Reflector $reflector
      */
-    public function setReflector(Reflector $reflector): void{
+    public function setReflector(Reflector $reflector): void {
         $this->reflector = $reflector;
     }
 
@@ -105,5 +105,5 @@ abstract class AbstractBenchmarkConfiguration{
      * @param AbstractHook $hook
      * @return bool
      */
-    abstract public function validateHook(AbstractHook $hook):bool;
+    abstract public function validateHook(AbstractHook $hook): bool;
 }

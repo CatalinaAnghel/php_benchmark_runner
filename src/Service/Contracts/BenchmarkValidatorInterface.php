@@ -10,7 +10,7 @@ interface BenchmarkValidatorInterface {
      * @param $limit
      * @return bool
      */
-    public function validate($params, $limit):bool;
+    public function validate($params, $limit): bool;
 
     /**
      * Validates the provided hook configuration (from the PHPDoc blocks)
@@ -19,7 +19,7 @@ interface BenchmarkValidatorInterface {
      * @param bool $checkStatic
      * @return bool
      */
-    public function validateHook($params, bool $checkStatic = false):bool;
+    public function validateHook($params, bool $checkStatic = false): bool;
 
     /**
      * Validates the configuration provided for the parameter provider

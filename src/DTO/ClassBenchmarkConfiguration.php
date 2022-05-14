@@ -9,7 +9,7 @@ class ClassBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
     /**
      * ClassBenchmarkConfiguration constructor.
      */
-    public function __construct(){
+    public function __construct() {
         $this->init();
     }
 
@@ -18,7 +18,7 @@ class ClassBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
      * @param AbstractHook $hook
      * @return bool
      */
-    public function validateHook(AbstractHook $hook): bool{
+    public function validateHook(AbstractHook $hook): bool {
         return $hook->getHookType() === ClassHook::class;
     }
 }

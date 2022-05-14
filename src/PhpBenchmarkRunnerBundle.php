@@ -9,12 +9,12 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 /**
  * Class PhpBenchmarkRunnerBundle
  */
-class PhpBenchmarkRunnerBundle extends Bundle{
+class PhpBenchmarkRunnerBundle extends Bundle {
     /**
      * {@inheritDoc}
      * @return ExtensionInterface|null
      */
-    public function getContainerExtension():?ExtensionInterface{
+    public function getContainerExtension(): ?ExtensionInterface {
         return new PhpBenchmarkRunnerExtension();
     }
 }

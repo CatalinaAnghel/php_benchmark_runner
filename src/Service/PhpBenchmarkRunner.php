@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 /**
  * Class PhpBenchmarkRunnerInterface.
  */
-class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
+class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
     /**
      * @var AnnotationMapperInterface
      */
@@ -55,7 +55,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @param ServiceLocator|null $providersLocator
      * @param ServiceLocator|null $hooksLocator
      */
-    public function __construct(AnnotationMapperInterface $annotationMapper, array $parallelConfiguration, ServiceLocator $serviceLocator = null, ServiceLocator $providersLocator = null, ServiceLocator $hooksLocator = null){
+    public function __construct(AnnotationMapperInterface $annotationMapper, array $parallelConfiguration, ServiceLocator $serviceLocator = null, ServiceLocator $providersLocator = null, ServiceLocator $hooksLocator = null) {
         $this->annotationMapper = $annotationMapper;
         $this->parallelConfiguration = $parallelConfiguration;
         $this->serviceLocator = $serviceLocator;
@@ -68,12 +68,12 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
     /**
      * Validate the configuration
      */
-    private function validateConfiguration(): void{
+    private function validateConfiguration(): void {
         if (null === $this->serviceLocator) {
             throw new Exception('The services cannot be instantiated: Invalid Service Locator configuration');
         }
 
-        if(isset($this->parallelConfiguration['enabled']) && $this->parallelConfiguration['enabled'] && !extension_loaded('parallel')){
+        if (isset($this->parallelConfiguration['enabled']) && $this->parallelConfiguration['enabled'] && !extension_loaded('parallel')) {
             throw new Exception('The parallel PHP extension is not installed.');
         }
     }
@@ -84,13 +84,13 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @throws \RuntimeException
      * @throws ContainerExceptionInterface
      */
-    public function buildBenchmark(): array{
+    public function buildBenchmark(): array {
         if (null !== $this->serviceLocator) {
             $benchmarkCollection = $this->annotationMapper->buildBenchmarkRecipe();
             return $this->runBenchmark($benchmarkCollection);
-        } else {
-            throw new \RuntimeException('The services cannot be instantiated: Invalid Service Locator configuration');
         }
+
+        throw new \Exception('The services cannot be instantiated: Invalid Service Locator configuration');
     }
 
     /**
@@ -99,14 +99,14 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @return array
      * @throws NotFoundExceptionInterface|ContainerExceptionInterface
      */
-    public function runBenchmark(BenchmarkCollection $benchmarkCollection): array{
+    public function runBenchmark(BenchmarkCollection $benchmarkCollection): array {
         $results = array();
         if (is_array($benchmarkCollection->getBenchmarks()) && count($benchmarkCollection->getBenchmarks())) {
             foreach ($benchmarkCollection->getBenchmarks() as $benchmark) {
                 // run the before class hooks
                 $this->runClassHooks($benchmark->getClassBenchmarkConfiguration()->getHooks());
                 // method benchmark configuration
-                foreach ($benchmark->getMethodBenchmarkConfigurations() as $methodBenchmarkConfiguration){
+                foreach ($benchmark->getMethodBenchmarkConfigurations() as $methodBenchmarkConfiguration) {
                     $this->runMethodHooks($methodBenchmarkConfiguration->getHooks());
 
                     if(isset($this->parallelConfiguration['enabled']) && $this->parallelConfiguration['enabled']){
@@ -128,7 +128,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @param array $hooks
      * @param bool $runAfter
      */
-    private function runClassHooks(array $hooks, bool $runAfter = false):void{
+    private function runClassHooks(array $hooks, bool $runAfter = false): void {
         foreach ($hooks as $classHook) {
             if ($runAfter === $classHook->isRunAfter()) {
                 $method = $classHook->getMethodName();
@@ -143,16 +143,16 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function runMethodHooks(array $hooks, bool $runAfter = false): void{
-        foreach ($hooks as $hook){
-            if($runAfter === $hook->isRunAfter()){
+    private function runMethodHooks(array $hooks, bool $runAfter = false): void {
+        foreach ($hooks as $hook) {
+            if ($runAfter === $hook->isRunAfter()) {
                 $hookService = null;
                 $normalizedClassName = self::getIndex($hook->getClassName());
-                if($this->hooksServiceLocator->has($normalizedClassName)){
+                if ($this->hooksServiceLocator->has($normalizedClassName)) {
                     $hookService = $this->hooksServiceLocator->get($normalizedClassName);
-                }elseif($this->serviceLocator->has($normalizedClassName)){
+                } else if ($this->serviceLocator->has($normalizedClassName)) {
                     $hookService = $this->serviceLocator->get($normalizedClassName);
-                }else{
+                } else {
                     throw new Exception('Service not defined');
                 }
                 $method = $hook->getMethodName();
@@ -165,51 +165,55 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
      * @param MethodBenchmarkConfiguration $methodBenchmarkConfiguration
      * @return BenchmarkResult
      */
-    private function runSequentialBenchmark(MethodBenchmarkConfiguration $methodBenchmarkConfiguration): BenchmarkResult{
+    private function runSequentialBenchmark(MethodBenchmarkConfiguration $methodBenchmarkConfiguration): BenchmarkResult {
         $benchmarkResult = new BenchmarkResult();
         $benchmarkResult->setIterationsNumber($methodBenchmarkConfiguration->getNumberOfIterations());
         $benchmarkResult->setRevolutionsNumber($methodBenchmarkConfiguration->getNumberOfRevolutions());
-        for($iteration = 0; $iteration < $methodBenchmarkConfiguration->getNumberOfIterations(); $iteration++){
+        for ($iteration = 0; $iteration < $methodBenchmarkConfiguration->getNumberOfIterations(); $iteration++) {
             $revolutionResults = array();
-            for($revolution = 0; $revolution < $methodBenchmarkConfiguration->getNumberOfRevolutions(); $revolution++){
+            for ($revolution = 0; $revolution < $methodBenchmarkConfiguration->getNumberOfRevolutions(); $revolution++) {
                 $reflector = $methodBenchmarkConfiguration->getReflector();
                 $providerInfo = $methodBenchmarkConfiguration->getParamProvider();
                 $serviceInstance = $this->serviceLocator->get(self::getIndex($reflector->class));
                 $methodName = $reflector->name;
-                if(null !== $providerInfo){
+                if (null !== $providerInfo) {
                     $providerInstance = $this->providersServiceLocator->get(self::getIndex($providerInfo->getClassName()));
                 }
                 $revolutionResults[$revolution]['initial_memory'] = memory_get_usage();
                 $profiler = new MemoryProfiler();
                 $startTime = microtime(true);
-                if(isset($providerInstance)){
+                if (isset($providerInstance)) {
                     // a parameter provider has been defined
                     $providerMethod = $providerInfo->getMethodName();
                     $paramsGenerator = $providerInstance->$providerMethod();
                     $generatedParams = array();
-                    foreach ($paramsGenerator as $params){
+                    foreach ($paramsGenerator as $params) {
                         $generatedParams[] = $params;
                     }
-                    $profiler->start();
+                    $generatedParams[] = [$profiler, 'start'];
                     call_user_func_array(array($serviceInstance, $methodName), $generatedParams);
-                }else{
-                    $profiler->start();
-                    $serviceInstance->$methodName();
+                } else {
+                    $params = array();
+                    $expectedParameters = $reflector->getParameters();
+                    for ($iterator = 0; $iterator < count($expectedParameters) - 1; $iterator++) {
+                        $params[] = $expectedParameters[$iterator]->getDefaultValue();
+                    }
+                    $params[] = [$profiler, 'start'];
+                    call_user_func_array(array($serviceInstance, $methodName), $params);
                 }
                 $profiler->stop();
                 $revolutionResults[$revolution]['memory_data'] = $profiler->getMemoryProfileArray();
                 $endTime = microtime(true);
-                $revolutionResults[$revolution]['final_memory'] = memory_get_usage();
-                $revolutionResults[$revolution]['memory'] = $revolutionResults[$revolution]['final_memory'] -
-                    $revolutionResults[$revolution]['initial_memory'];
                 $revolutionResults[$revolution]['execution_time'] = $endTime - $startTime;
             }
             $totalRevTime = 0;
             $totalRevMemory = 0;
-            foreach ($revolutionResults as $result){
+            foreach ($revolutionResults as $result) {
                 $totalRevTime += $result['execution_time'];
-                foreach ($result['memory_data'] as $memoryData){
-                    $totalRevMemory += $memoryData['memory'];
+                if (isset($result['memory_data'])) {
+                    foreach ($result['memory_data'] as $memoryData) {
+                        $totalRevMemory += $memoryData['memory'];
+                    }
                 }
             }
             $totalRevTime /= count($revolutionResults);
@@ -217,9 +221,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface{
             $benchmarkResult->addAverageExecutionTimeResult(round($totalRevTime, 6));
             $benchmarkResult->addMemoryResult($this->convert($totalRevMemory));
         }
-
         $benchmarkResult->setMemoryPeakValue($this->convert(memory_get_peak_usage()));
         return $benchmarkResult;
     }
-
 }

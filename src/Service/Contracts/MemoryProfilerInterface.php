@@ -6,15 +6,15 @@ interface MemoryProfilerInterface {
     /**
      * Starts the profiling process.
      */
-    public function start():void;
+    public function start(): void;
 
     /**
      * Tick method used to gather the required information
      */
-    public function tick():void;
+    public function tick(): void;
 
     /**
      * Stopping the profiling process.
      */
-    public function stop():void;
+    public function stop(): void;
 }

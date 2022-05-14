@@ -2,7 +2,7 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-class ParamProvider{
+class ParamProvider {
     /**
      * @var string $className
      */
@@ -16,28 +16,28 @@ class ParamProvider{
     /**
      * @return string
      */
-    public function getClassName(): string{
+    public function getClassName(): string {
         return $this->className;
     }
 
     /**
      * @param string $className
      */
-    public function setClassName(string $className): void{
+    public function setClassName(string $className): void {
         $this->className = $className;
     }
 
     /**
      * @return string
      */
-    public function getMethodName(): string{
+    public function getMethodName(): string {
         return $this->methodName;
     }
 
     /**
      * @param string $methodName
      */
-    public function setMethodName(string $methodName): void{
+    public function setMethodName(string $methodName): void {
         $this->methodName = $methodName;
     }
 }

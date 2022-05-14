@@ -17,7 +17,7 @@ class MethodBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
     /**
      * MethodBenchmarkConfiguration constructor
      */
-    public function __construct(){
+    public function __construct() {
         $this->init();
         $this->paramProvider = null;
     }
@@ -25,14 +25,14 @@ class MethodBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
     /**
      * @return ParamProvider|null
      */
-    public function getParamProvider(): ?ParamProvider{
+    public function getParamProvider(): ?ParamProvider {
         return $this->paramProvider;
     }
 
     /**
      * @param ParamProvider $paramProvider
      */
-    public function setParamProvider(ParamProvider $paramProvider): void{
+    public function setParamProvider(ParamProvider $paramProvider): void {
         $this->paramProvider = $paramProvider;
     }
 
@@ -41,7 +41,7 @@ class MethodBenchmarkConfiguration extends AbstractBenchmarkConfiguration {
      * @param AbstractHook $hook
      * @return bool
      */
-    public function validateHook(AbstractHook $hook): bool{
+    public function validateHook(AbstractHook $hook): bool {
         return $hook->getHookType() === MethodHook::class;
     }
 }
