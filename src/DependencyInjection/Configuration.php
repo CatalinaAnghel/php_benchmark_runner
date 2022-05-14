@@ -29,15 +29,6 @@ class Configuration implements ConfigurationInterface {
                     ->end()
                 ->end()
             ->end()
-            ->arrayNode('parallel')
-                ->children()
-                    ->booleanNode('enabled')
-                    ->defaultFalse()
-                    ->end()
-                    ->integerNode('threads_number')
-                    ->defaultValue(100)
-                    ->end()
-            ->end()
         ->end();
 
         return $threeBuilder;

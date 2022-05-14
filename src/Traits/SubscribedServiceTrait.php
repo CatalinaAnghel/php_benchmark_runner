@@ -2,12 +2,12 @@
 
 namespace MepProject\PhpBenchmarkRunner\Traits;
 
-trait SubscribedServiceTrait{
+trait SubscribedServiceTrait {
     /**
      * @param $className
      * @return string
      */
-    public static function getIndex($className): string{
+    public static function getIndex($className): string {
         $normalizedClassName = explode('\\', $className);
         return strtolower(end($normalizedClassName));
     }
