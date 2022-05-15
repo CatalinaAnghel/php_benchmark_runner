@@ -6,6 +6,9 @@ use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkResult;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\Exception\InvalidConfigurationException;
+use MepProject\PhpBenchmarkRunner\Exception\ServiceConfigurationException;
+use MepProject\PhpBenchmarkRunner\Helper\ExceptionMessages;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\AnnotationMapperInterface;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\PhpBenchmarkRunnerInterface;
 use MepProject\PhpBenchmarkRunner\Traits\MemoryConvertorTrait;
@@ -13,6 +16,7 @@ use MepProject\PhpBenchmarkRunner\Traits\SubscribedServiceTrait;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
 /**
@@ -64,7 +68,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
      */
     private function validateConfiguration(): void {
         if (null === $this->serviceLocator) {
-            throw new Exception('The services cannot be instantiated: Invalid Service Locator configuration');
+            throw new InvalidConfigurationException(ExceptionMessages::INVALID_SERVICE_LOCATOR_EXCEPTION_MESSAGE);
         }
     }
 
@@ -75,12 +79,8 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
      * @throws ContainerExceptionInterface
      */
     public function buildBenchmark(): array {
-        if (null !== $this->serviceLocator) {
-            $benchmarkCollection = $this->annotationMapper->buildBenchmarkRecipe();
-            return $this->runBenchmark($benchmarkCollection);
-        }
-
-        throw new \Exception('The services cannot be instantiated: Invalid Service Locator configuration');
+        $benchmarkCollection = $this->annotationMapper->buildBenchmarkRecipe();
+        return $this->runBenchmark($benchmarkCollection);
     }
 
     /**
@@ -140,7 +140,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
                 } else if ($this->serviceLocator->has($normalizedClassName)) {
                     $hookService = $this->serviceLocator->get($normalizedClassName);
                 } else {
-                    throw new Exception('Service not defined');
+                    throw new ServiceNotFoundException($normalizedClassName);
                 }
                 $method = $hook->getMethodName();
                 $hookService->$method();
@@ -219,7 +219,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
             $profiler->stop();
             $revolutionResults[$revolution]['memory_data'] = $profiler->getMemoryProfileArray();
             $endTime = microtime(true);
-            $revolutionResults[$revolution]['execution_time'] = $endTime - $startTime;
+            $revolutionResults[$revolution]['execution_time'] = ($endTime - $startTime) * 1000;
         }
 
         return $revolutionResults;

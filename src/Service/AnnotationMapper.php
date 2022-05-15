@@ -10,7 +10,9 @@ use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\MethodHook;
 use MepProject\PhpBenchmarkRunner\DTO\ParamProvider;
-use MepProject\PhpBenchmarkRunner\Exception\ExceptionMessages;
+use MepProject\PhpBenchmarkRunner\Exception\InvalidConfigurationException;
+use MepProject\PhpBenchmarkRunner\Exception\ServiceConfigurationException;
+use MepProject\PhpBenchmarkRunner\Helper\ExceptionMessages;
 use MepProject\PhpBenchmarkRunner\Helper\Constants;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\AnnotationMapperInterface;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\BenchmarkValidatorInterface;
@@ -112,7 +114,7 @@ class AnnotationMapper implements AnnotationMapperInterface {
                             break;
                         case Constants::BEFORE_METHOD_HOOK:
                         case Constants::AFTER_METHOD_HOOK:
-                            throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
+                            throw new InvalidConfigurationException(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE, 0, null, $childNode->value);
                         case Constants::BEFORE_CLASS_HOOK:
                             if (is_array($params) && 1 === count($params)) {
                                 $params[1] = $params[0];
@@ -128,7 +130,7 @@ class AnnotationMapper implements AnnotationMapperInterface {
                             $benchmarkConfiguration = $this->setClassHook($benchmarkConfiguration, $params, Constants::AFTER_CLASS_HOOK);
                             break;
                         case Constants::PARAMETER_PROVIDER_OPTION:
-                            throw new Exception('Parameter provider invalid configuration');
+                            throw new InvalidConfigurationException(ExceptionMessages::PARAM_PROVIDER_CONFIGURATION_EXCEPTION_MESSAGE, 0, null, $childNode->value);
                         default:
                             // do nothing
                     }
@@ -198,7 +200,9 @@ class AnnotationMapper implements AnnotationMapperInterface {
                                 break;
                             case Constants::BEFORE_CLASS_HOOK:
                             case Constants::AFTER_CLASS_HOOK:
-                                throw new Exception(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE);
+                                throw new InvalidConfigurationException(
+                                    ExceptionMessages::MHOOK_CONFIGURATION_EXCEPTION_MESSAGE, 0,
+                                    null, $childNode->value);
                             case Constants::PARAMETER_PROVIDER_OPTION:
                                 $benchmarkConfiguration = $this->setProvider($benchmarkConfiguration, $params);
                                 break;
@@ -250,7 +254,7 @@ class AnnotationMapper implements AnnotationMapperInterface {
             // the annotation is correct
             $benchmarkConfiguration->setNumberOfRevolutions((int)$params[0]);
         } else {
-            throw new Exception('Invalid revolutions configuration');
+            throw new InvalidConfigurationException(ExceptionMessages::INVALID_REV_CONFIGURATION_EXCEPTION_MESSAGE, 0, null, $params[0]);
         }
 
         return $benchmarkConfiguration;
@@ -265,7 +269,7 @@ class AnnotationMapper implements AnnotationMapperInterface {
             // the annotation is correct
             $benchmarkConfiguration->setNumberOfIterations((int)$params[0]);
         } else {
-            throw new Exception('Invalid iterations configuration');
+            throw new InvalidConfigurationException(ExceptionMessages::INVALID_IT_CONFIGURATION_EXCEPTION_MESSAGE, 0, null, $params[0]);
         }
 
         return $benchmarkConfiguration;
@@ -285,7 +289,10 @@ class AnnotationMapper implements AnnotationMapperInterface {
             $hook->setRunAfter($type === Constants::AFTER_CLASS_HOOK);
             $benchmarkConfiguration->addHook($hook);
         } else {
-            throw new Exception('Invalid class hook configuration');
+            $className = $params[0]?? '';
+            $methodName = $params[1]?? '';
+            throw new ServiceConfigurationException(ExceptionMessages::INVALID_CLASS_HOOK_CONFIG_EXCEPTION_MESSAGE,
+                0, null, $className, $methodName);
         }
         return $benchmarkConfiguration;
     }
@@ -304,7 +311,10 @@ class AnnotationMapper implements AnnotationMapperInterface {
             $hook->setRunAfter($type === Constants::AFTER_METHOD_HOOK);
             $benchmarkConfiguration->addHook($hook);
         } else {
-            throw new Exception('Invalid method hook configuration');
+            $className = $params[0]?? '';
+            $methodName = $params[1]?? '';
+            throw new ServiceConfigurationException(ExceptionMessages::INVALID_METHOD_HOOK_CONFIG_EXCEPTION_MESSAGE,
+                0, null, $className, $methodName);
         }
         return $benchmarkConfiguration;
     }
@@ -328,7 +338,10 @@ class AnnotationMapper implements AnnotationMapperInterface {
                 $paramProvider->setMethodName($params[1]);
                 $benchmarkConfiguration->setParamProvider($paramProvider);
             } else {
-                throw new Exception("Invalid provider");
+                $className = $params[0]?? '';
+                $methodName = $params[1]?? '';
+                throw new ServiceConfigurationException(ExceptionMessages::INVALID_PROVIDER_EXCEPTION_MESSAGE,
+                    0, null, $className, $methodName);
             }
         }
         return $benchmarkConfiguration;

@@ -2,7 +2,8 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO\Contracts;
 
-use Symfony\Component\Config\Definition\Exception\Exception;
+use MepProject\PhpBenchmarkRunner\Exception\InvalidConfigurationException;
+use MepProject\PhpBenchmarkRunner\Helper\ExceptionMessages;
 use Reflector;
 
 abstract class AbstractBenchmarkConfiguration {
@@ -75,12 +76,13 @@ abstract class AbstractBenchmarkConfiguration {
 
     /**
      * @param AbstractHook $hook
+     * @throws InvalidConfigurationException
      */
     public function addHook(AbstractHook $hook): void {
         if ($this->validateHook($hook)) {
             $this->hooks[] = $hook;
         } else {
-            throw new \Exception('Invalid hook configuration');
+            throw new InvalidConfigurationException(ExceptionMessages::HOOK_CONFIGURATION_EXCEPTION_MESSAGE, 0, null, $hook->getClassName());
         }
     }
 
