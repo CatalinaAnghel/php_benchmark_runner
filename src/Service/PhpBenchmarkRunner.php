@@ -92,14 +92,14 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
     public function runBenchmark(BenchmarkCollection $benchmarkCollection): array {
         $results = array();
         if (is_array($benchmarkCollection->getBenchmarks()) && count($benchmarkCollection->getBenchmarks())) {
-            foreach ($benchmarkCollection->getBenchmarks() as $benchmark) {
+            foreach ($benchmarkCollection->getBenchmarks() as $key =>$benchmark) {
                 // run the before class hooks
                 $this->runClassHooks($benchmark->getClassBenchmarkConfiguration()->getHooks());
                 // method benchmark configuration
                 foreach ($benchmark->getMethodBenchmarkConfigurations() as $methodBenchmarkConfiguration) {
                     $this->runMethodHooks($methodBenchmarkConfiguration->getHooks());
-
-                    $results[] = $this->runSequentialBenchmark($methodBenchmarkConfiguration);
+                    $results[$benchmark->getClassBenchmarkConfiguration()->getReflector()->name][$methodBenchmarkConfiguration->getReflector()->name] =
+                        $this->runSequentialBenchmark($methodBenchmarkConfiguration);
 
                     $this->runMethodHooks($methodBenchmarkConfiguration->getHooks(), true);
                 }
@@ -166,6 +166,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
                     foreach ($result['memory_data'] as $memoryData) {
                         $totalRevMemory += $memoryData['memory'];
                     }
+                    $totalRevMemory /= count($result['memory_data']);
                 }
             }
             $totalRevTime /= count($revolutionResults);

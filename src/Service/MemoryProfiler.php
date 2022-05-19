@@ -36,7 +36,6 @@ class MemoryProfiler implements MemoryProfilerInterface {
      */
     public function start(): void {
         register_tick_function(array($this, "tick"), true);
-        declare(ticks=1);
     }
 
     /**
