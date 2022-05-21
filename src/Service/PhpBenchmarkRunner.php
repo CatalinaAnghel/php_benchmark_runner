@@ -5,6 +5,7 @@ namespace MepProject\PhpBenchmarkRunner\Service;
 use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkResult;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\Exception\InvalidConfigurationException;
 use MepProject\PhpBenchmarkRunner\Exception\ServiceConfigurationException;
@@ -43,6 +44,16 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
      */
     private ?ServiceLocator $hooksServiceLocator;
 
+    /**
+     * @var BenchmarkCollection $benchmarkingRecipe
+     */
+    private BenchmarkCollection $benchmarkingRecipe;
+
+    /**
+     * @var AbstractBenchmarkConfiguration|null $currentBenchmarkComponent
+     */
+    private ?AbstractBenchmarkConfiguration $currentBenchmarkComponent;
+
     use SubscribedServiceTrait;
 
     use MemoryConvertorTrait;
@@ -59,8 +70,37 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
         $this->serviceLocator = $serviceLocator;
         $this->providersServiceLocator = $providersLocator;
         $this->hooksServiceLocator = $hooksLocator;
+        $this->currentBenchmarkComponent = null;
 
         $this->validateConfiguration();
+    }
+
+    /**
+     * @return BenchmarkCollection
+     */
+    public function getBenchmarkingRecipe(): BenchmarkCollection {
+        return $this->benchmarkingRecipe;
+    }
+
+    /**
+     * @param BenchmarkCollection $benchmarkingRecipe
+     */
+    public function setBenchmarkingRecipe(BenchmarkCollection $benchmarkingRecipe): void {
+        $this->benchmarkingRecipe = $benchmarkingRecipe;
+    }
+
+    /**
+     * @return AbstractBenchmarkConfiguration|null
+     */
+    public function getCurrentBenchmarkComponent(): ?AbstractBenchmarkConfiguration {
+        return $this->currentBenchmarkComponent;
+    }
+
+    /**
+     * @param AbstractBenchmarkConfiguration|null $currentBenchmarkComponent
+     */
+    public function setCurrentBenchmarkComponent(?AbstractBenchmarkConfiguration $currentBenchmarkComponent): void {
+        $this->currentBenchmarkComponent = $currentBenchmarkComponent;
     }
 
     /**
@@ -79,8 +119,8 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
      * @throws ContainerExceptionInterface
      */
     public function buildBenchmark(): array {
-        $benchmarkCollection = $this->annotationMapper->buildBenchmarkRecipe();
-        return $this->runBenchmark($benchmarkCollection);
+        $this->setBenchmarkingRecipe($this->annotationMapper->buildBenchmarkRecipe());
+        return $this->runBenchmark();
     }
 
     /**
@@ -89,14 +129,16 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
      * @return array
      * @throws NotFoundExceptionInterface|ContainerExceptionInterface
      */
-    public function runBenchmark(BenchmarkCollection $benchmarkCollection): array {
+    public function runBenchmark(): array {
         $results = array();
-        if (is_array($benchmarkCollection->getBenchmarks()) && count($benchmarkCollection->getBenchmarks())) {
-            foreach ($benchmarkCollection->getBenchmarks() as $key =>$benchmark) {
+        if (is_array($this->benchmarkingRecipe->getBenchmarks()) && count($this->benchmarkingRecipe->getBenchmarks())) {
+            foreach ($this->benchmarkingRecipe->getBenchmarks() as $benchmark) {
+                $this->setCurrentBenchmarkComponent($benchmark->getClassBenchmarkConfiguration());
                 // run the before class hooks
                 $this->runClassHooks($benchmark->getClassBenchmarkConfiguration()->getHooks());
                 // method benchmark configuration
                 foreach ($benchmark->getMethodBenchmarkConfigurations() as $methodBenchmarkConfiguration) {
+                    $this->setCurrentBenchmarkComponent($methodBenchmarkConfiguration);
                     $this->runMethodHooks($methodBenchmarkConfiguration->getHooks());
                     $results[$benchmark->getClassBenchmarkConfiguration()->getReflector()->name][$methodBenchmarkConfiguration->getReflector()->name] =
                         $this->runSequentialBenchmark($methodBenchmarkConfiguration);
@@ -108,6 +150,8 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
                 $this->runClassHooks($benchmark->getClassBenchmarkConfiguration()->getHooks(), true);
             }
         }
+
+        $this->setCurrentBenchmarkComponent(null);
         return $results;
     }
 
@@ -196,6 +240,7 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
             }
             $revolutionResults[$revolution]['initial_memory'] = memory_get_usage();
             $profiler = new MemoryProfiler();
+
             $startTime = microtime(true);
             if (isset($providerInstance)) {
                 // a parameter provider has been defined

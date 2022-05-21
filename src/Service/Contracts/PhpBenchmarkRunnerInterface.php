@@ -12,8 +12,7 @@ interface PhpBenchmarkRunnerInterface {
 
     /**
      * Benchmark based on the benchmarking plan
-     * @param BenchmarkCollection $benchmarkCollection
      * @return array
      */
-    public function runBenchmark(BenchmarkCollection $benchmarkCollection): array;
+    public function runBenchmark(): array;
 }
