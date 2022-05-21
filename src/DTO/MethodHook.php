@@ -10,6 +10,6 @@ class MethodHook extends AbstractHook {
      * @return bool
      */
     public function validate(): bool {
-        return true;
+        return method_exists($this->getClassName(), $this->getMethodName());
     }
 }

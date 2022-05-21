@@ -2,6 +2,7 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\BenchmarkValidatorInterface;
 
 /**
@@ -9,30 +10,26 @@ use MepProject\PhpBenchmarkRunner\Service\Contracts\BenchmarkValidatorInterface;
  */
 class BenchmarkValidator implements BenchmarkValidatorInterface {
     /**
-     * @param string $className
-     * @param string $methodName
-     * @return bool
-     * @throws \ReflectionException
-     */
-    private function checkStaticMethod(string $className, string $methodName): bool {
-        return (new \ReflectionMethod($className, $methodName))->isStatic();
-    }
-
-    /**
      * {@inheritDoc)
      */
     public function validate($params, $limit): bool {
         return (is_array($params) && 1 === count($params) && isset($params[0]) &&
-            is_numeric($params[0]) && $params[0] <= (int)$limit);
+            is_numeric($params[0]) && $params[0] <= (int)$limit && $params[0] >= 1);
     }
 
     /**
      * {@inheritDoc}
      * @throws \ReflectionException
      */
-    public function validateHook($params, bool $checkStatic = false): bool {
-        return (is_array($params) && (2 === count($params) && method_exists($params[0], $params[1]) &&
-                (($this->checkStaticMethod($params[0], $params[1]) && $checkStatic) || !$checkStatic)));
+    public function validateHookConfiguration($params): bool {
+        return is_array($params) && 2 === count($params);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function validateHook(AbstractHook $hook): bool {
+        return $hook->validate();
     }
 
     /**
