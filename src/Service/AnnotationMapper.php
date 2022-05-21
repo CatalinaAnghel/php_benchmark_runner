@@ -282,10 +282,16 @@ class AnnotationMapper implements AnnotationMapperInterface {
      * @return AbstractBenchmarkConfiguration
      */
     private function setClassHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration {
-        if ($this->validator->validateHook($params, true)) {
+        $hook = null;
+        $validConfiguration = $this->validator->validateHookConfiguration($params);
+
+        if($validConfiguration){
             $hook = new ClassHook();
             $hook->setClassName($params[0]);
             $hook->setMethodName($params[1]);
+        }
+
+        if (null !== $hook && $this->validator->validateHook($hook)) {
             $hook->setRunAfter($type === Constants::AFTER_CLASS_HOOK);
             $benchmarkConfiguration->addHook($hook);
         } else {
@@ -304,10 +310,15 @@ class AnnotationMapper implements AnnotationMapperInterface {
      * @return AbstractBenchmarkConfiguration
      */
     private function setMethodHook(AbstractBenchmarkConfiguration $benchmarkConfiguration, array $params, string $type): AbstractBenchmarkConfiguration {
-        if ($this->validator->validateHook($params)) {
+        $hook = null;
+        $validConfiguration = $this->validator->validateHookConfiguration($params);
+
+        if($validConfiguration){
             $hook = new MethodHook();
             $hook->setClassName($params[0]);
             $hook->setMethodName($params[1]);
+        }
+        if (null !== $hook && $this->validator->validateHook($hook)) {
             $hook->setRunAfter($type === Constants::AFTER_METHOD_HOOK);
             $benchmarkConfiguration->addHook($hook);
         } else {

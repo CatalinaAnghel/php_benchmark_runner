@@ -13,6 +13,17 @@ class ClassHook extends AbstractHook {
      * @return bool
      */
     public function validate(): bool {
-        return true;
+        return method_exists($this->getClassName(), $this->getMethodName()) &&
+            $this->checkStaticMethod($this->getClassName(), $this->getMethodName());
+    }
+
+    /**
+     * @param string $className
+     * @param string $methodName
+     * @return bool
+     * @throws \ReflectionException
+     */
+    private function checkStaticMethod(string $className, string $methodName): bool {
+        return (new \ReflectionMethod($className, $methodName))->isStatic();
     }
 }

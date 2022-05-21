@@ -51,7 +51,6 @@ class MemoryProfiler implements MemoryProfilerInterface {
         if ($this->showBacktrace) {
             $data['backtrace'] = debug_backtrace(FALSE);
         }
-
         $this->memoryProfileArray[] = $data;
     }
 

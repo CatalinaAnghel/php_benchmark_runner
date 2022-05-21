@@ -8,7 +8,6 @@ use MepProject\PhpBenchmarkRunner\DTO\BenchmarkResult;
 use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\Exception\InvalidConfigurationException;
-use MepProject\PhpBenchmarkRunner\Exception\ServiceConfigurationException;
 use MepProject\PhpBenchmarkRunner\Helper\ExceptionMessages;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\AnnotationMapperInterface;
 use MepProject\PhpBenchmarkRunner\Service\Contracts\PhpBenchmarkRunnerInterface;
@@ -16,7 +15,6 @@ use MepProject\PhpBenchmarkRunner\Traits\MemoryConvertorTrait;
 use MepProject\PhpBenchmarkRunner\Traits\SubscribedServiceTrait;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
@@ -125,7 +123,6 @@ class PhpBenchmarkRunner implements PhpBenchmarkRunnerInterface {
 
     /**
      * {@inheritDoc}
-     * @param BenchmarkCollection $benchmarkCollection
      * @return array
      * @throws NotFoundExceptionInterface|ContainerExceptionInterface
      */
