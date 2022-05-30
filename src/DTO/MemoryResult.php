@@ -2,7 +2,9 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-class MemoryResult {
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractSerializableClass;
+
+class MemoryResult extends AbstractSerializableClass {
     /**
      * @var float $value
      */

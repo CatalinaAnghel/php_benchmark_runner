@@ -42,7 +42,7 @@ class BenchmarkValidator implements BenchmarkValidatorInterface {
         }
         foreach ($reflectionMethod->getParameters() as $key => $parameter) {
             if ((isset($generatedParams[$key]) &&
-                    gettype($generatedParams[$key]) !== $parameter->getType()->getName()) || (
+                    get_debug_type($generatedParams[$key]) !== $parameter->getType()->getName()) || (
                     !isset($generatedParams[$key]) && !$parameter->isOptional()
                 )) {
                 return false;

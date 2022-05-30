@@ -85,6 +85,7 @@ class AnnotationMapper implements AnnotationMapperInterface {
      * @param string $annotations
      * @param string $className
      * @return AbstractBenchmarkConfiguration|null
+     * @throws InvalidConfigurationException
      */
     private function parseClassAnnotations(string $annotations, string $className): ?AbstractBenchmarkConfiguration {
         $tokens = new TokenIterator($this->lexer->tokenize($annotations));

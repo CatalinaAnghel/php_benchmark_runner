@@ -2,7 +2,9 @@
 
 namespace MepProject\PhpBenchmarkRunner\DTO;
 
-class BenchmarkResult {
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractSerializableClass;
+
+class BenchmarkResult extends AbstractSerializableClass {
     /**
      * @var int $iterationsNumber
      */

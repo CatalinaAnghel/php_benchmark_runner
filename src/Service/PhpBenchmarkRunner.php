@@ -2,10 +2,10 @@
 
 namespace MepProject\PhpBenchmarkRunner\Service;
 
-use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkCollection;
 use MepProject\PhpBenchmarkRunner\DTO\BenchmarkResult;
 use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractBenchmarkConfiguration;
+use MepProject\PhpBenchmarkRunner\DTO\Contracts\AbstractHook;
 use MepProject\PhpBenchmarkRunner\DTO\MethodBenchmarkConfiguration;
 use MepProject\PhpBenchmarkRunner\Exception\InvalidConfigurationException;
 use MepProject\PhpBenchmarkRunner\Helper\ExceptionMessages;
